@@ -174,6 +174,7 @@ fun ManualScanning(
             //else show list
             else {
                 item{
+                    if (!namedDevices.isEmpty())
                     Text("Named Devices", color = GoldPrimary)
                 }
                 itemsIndexed(namedDevices) { index, device ->
@@ -181,6 +182,7 @@ fun ManualScanning(
                     Spacer(modifier = Modifier.size(8.dp))
                 }
                 item{
+                    if (!unnamedDevices.isEmpty())
                     Text("Unnamed Devices", color= GoldPrimary)
                 }
 
