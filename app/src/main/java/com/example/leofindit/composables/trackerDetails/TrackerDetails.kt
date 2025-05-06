@@ -437,7 +437,7 @@ fun TrackerDetails(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel?.setNickName(address, nickname)
+                        viewModel.setNickName(address, nickname)
                         showDialog = false
                         Toast.makeText(context, "Nickname set!", Toast.LENGTH_SHORT).show()
                     }
@@ -475,8 +475,8 @@ fun TrackerDetailsPreview() {
         isSafe = true,
         isParent = false,
         isTarget = false,
-        nickName = "Airpods1",
-        deviceUuid = "01000212"
+        nickName = "null",
+        deviceUuid = ""
     )
     LeoFindItTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = Background) {

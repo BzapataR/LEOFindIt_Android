@@ -98,7 +98,7 @@ fun MarkedDevices(navController: NavController? = null) {
                     }
                 } else {
                     repeat(10) {
-                        DeviceDetailEntryPreview(navController = navController)
+                        DeviceDetailEntryPreview()
                         //todo: get From WhiteList List data base
                     }
                 }

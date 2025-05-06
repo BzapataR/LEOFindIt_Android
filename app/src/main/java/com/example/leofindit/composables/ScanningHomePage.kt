@@ -44,6 +44,7 @@ import androidx.navigation.NavController
 import com.example.leofindit.BtHelper
 import com.example.leofindit.LocationHelper
 import com.example.leofindit.R
+import com.example.leofindit.model.BtleDevice
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.InversePrimary
 import com.example.leofindit.ui.theme.LeoFindItTheme
@@ -73,6 +74,8 @@ fun ManualScanning(
     val isLocationOn = LocationHelper.scanPreCheck(locationPermissionState)
 
     val scannedDevices by viewModel.scannedDevices.collectAsState(initial = emptyList())
+    val sortedDevices = scannedDevices.sortedByDescending { it.signalStrength }
+    val (namedDevices, unnamedDevices) = sortedDevices.partition { device -> device.deviceName != "Unknown Device" }
     val isScanning by viewModel.isScanning.collectAsState(initial = false)
 
 
@@ -170,10 +173,25 @@ fun ManualScanning(
             }
             //else show list
             else {
-                itemsIndexed(scannedDevices) { index, device ->
+                item{
+                    Text("Named Devices", color = GoldPrimary)
+                }
+                itemsIndexed(namedDevices) { index, device ->
                     DeviceListEntry(navController, device)
                     Spacer(modifier = Modifier.size(8.dp))
                 }
+                item{
+                    Text("Unnamed Devices", color= GoldPrimary)
+                }
+
+                itemsIndexed(unnamedDevices) { index, device ->
+                    DeviceListEntry(navController, device)
+                    Spacer(modifier = Modifier.size(8.dp))
+                }
+//                itemsIndexed(sortedDevices) { index, device ->
+//                    DeviceListEntry(navController, device)
+//                    Spacer(modifier = Modifier.size(8.dp))
+//                }
                 item { Spacer(Modifier.height(24.dp)) }
 
             }

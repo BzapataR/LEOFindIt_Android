@@ -12,6 +12,8 @@ import com.example.leofindit.model.DeviceScanner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.collections.find
+import kotlin.collections.map
 
 //view model to store scanned device list and scanning logic
 class BtleViewModel(application: Application) : AndroidViewModel(application) {

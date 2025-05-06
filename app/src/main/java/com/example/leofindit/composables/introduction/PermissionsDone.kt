@@ -23,7 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.leofindit.R
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.GoldPrimaryDull
@@ -34,7 +33,7 @@ import com.example.leofindit.ui.theme.Surface
  *                  When all into pages are complete
  *********************************************************************************/
 @Composable
-fun PermissionsDone(navController: NavController? = null, onFinish: (() -> Unit)? = null) {
+fun PermissionsDone(onFinish: (() -> Unit)? = null) {
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly,
