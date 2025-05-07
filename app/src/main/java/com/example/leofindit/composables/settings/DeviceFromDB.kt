@@ -99,10 +99,9 @@ fun DeviceByDb(
     }
 
     var device = deviceState!!
-
-
     var ignoreTracker by remember { mutableStateOf(device.getIsSuspicious() == null) }
     var showDialog by remember { mutableStateOf(false) }
+    var showDeletionDialog by remember { mutableStateOf(false)}
     var nickname by remember { mutableStateOf(device.getNickName()?.takeIf { it != "null" } ?: "") }
 // Time vars
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -113,7 +112,7 @@ fun DeviceByDb(
             delay(1000)
         }
     }
-
+    var pendingIndex by remember { mutableIntStateOf(-1) }
     val deviceTimeStamp = rememberUpdatedState(newValue = device.timeStamp)
     val timeDiffMillis = currentTime - deviceTimeStamp.value
     val hours = TimeUnit.MILLISECONDS.toHours(timeDiffMillis)
@@ -232,38 +231,27 @@ fun DeviceByDb(
                                 count = options.size
                             ),
                             onClick = {
-                                // Toggle selection
-                                selectedIndex = if (isSelected) -1 else index
-
-                                when (selectedIndex) {
-                                    // Neutral (null) state: delete device
-                                    -1 -> {
-                                        device.markNeutral() // Set state to null (neutral)
-                                        dbViewModel.deleteDevice(device)
-                                        ignoreTracker = true
-                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to neutral")
-                                    }
-
-                                    // Mark Safe: set isSuspicious to false (0)
-                                    0 -> {
-                                        device.markSafe()
-                                        dbViewModel.addDevice(device)
-                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to safe")
-                                    }
-
-                                    // Mark Suspicious: set isSuspicious to true (1)
-                                    1 -> {
-                                        device.markSuspicious()
-                                        dbViewModel.addDevice(device)
-                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to suspicious")
+                                val newIndex = if (isSelected) -1 else index
+                                if (newIndex == -1) {
+                                    pendingIndex = newIndex
+                                    showDeletionDialog = true
+                                } else {
+                                    selectedIndex = newIndex
+                                    when (newIndex) {
+                                        0 -> {
+                                            device.markSafe()
+                                            dbViewModel.addDevice(device)
+                                            Log.i("Update Device Call", "Device set to safe")
+                                        }
+                                        1 -> {
+                                            device.markSuspicious()
+                                            dbViewModel.addDevice(device)
+                                            Log.i("Update Device Call", "Device set to suspicious")
+                                        }
                                     }
                                 }
-
-                                Log.i(
-                                    "Updated Device Call",
-                                    "Device: ${device.deviceAddress} is suspicious: ${device.getIsSuspicious()}"
-                                )
-                            },
+                            }
+                            ,
                             selected = index == selectedIndex,
                             enabled = true,
                             colors = SegmentedButtonDefaults.colors(
@@ -380,9 +368,7 @@ fun DeviceByDb(
                                 colors = SwitchDefaults.colors(checkedTrackColor = GoldPrimary),
                                 checked = selectedIndex == -1,
                                 onCheckedChange = { isChecked ->
-                                    device.markNeutral()
-                                    dbViewModel.deleteDevice(device)
-                                    selectedIndex = -1
+                                    if (isChecked) showDeletionDialog = true
                                 },
                             )
                         }
@@ -467,6 +453,39 @@ fun DeviceByDb(
                 TextButton(onClick = { showDialog = false }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+    if (showDeletionDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeletionDialog = false },
+            title = {
+                Text("Data Deletion", style = MaterialTheme.typography.titleLarge)
+            },
+            text = {
+                Text("This action will remove the device data from your phones storage")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeletionDialog = false
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    dbViewModel.deleteDevice(device)
+                    device.markNeutral()
+                    selectedIndex = pendingIndex
+                    ignoreTracker = true
+                    showDeletionDialog = false
+                    Toast.makeText(context, "Device Deleted", Toast.LENGTH_SHORT).show()
+                }) {
+                    Text("Delete")
+                }
+
             }
         )
     }
