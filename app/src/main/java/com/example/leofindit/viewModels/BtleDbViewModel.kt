@@ -27,7 +27,7 @@ class BtleDbViewModel(private val database: AppDatabase) : ViewModel() {
         loadData()
     }
 
-    private fun loadData() {
+     fun loadData() {
         viewModelScope.launch {
             _blackList.value = database.btleDeviceDao().getSusDevices()
             _whiteList.value = database.btleDeviceDao().getSafeDevices()
@@ -50,8 +50,8 @@ class BtleDbViewModel(private val database: AppDatabase) : ViewModel() {
         var device = database.btleDeviceDao().getDeviceByAddress(address)?.toBtleDevice()
         Log.i("DB device" ,"$device")
         return device
-
     }
+
     companion object {
         fun provideFactory(
             database: AppDatabase,

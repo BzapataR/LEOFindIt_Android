@@ -105,12 +105,7 @@ class DeviceScanner(private val context: Context) {
                 deviceName = deviceName,
                 deviceAddress = deviceAddress,
                 signalStrength = rssi,
-                isParent = false,
-                isTarget = false,
-                isSuspicious = null,
-                isTag = false,
                 timeStamp = System.currentTimeMillis(),
-                nickName = deviceName,
                 deviceUuid = uuidString // Store UUIDs as a comma-separated string
             )
 /**

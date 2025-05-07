@@ -19,8 +19,6 @@ data class BTLEDeviceEntity(
     )
 
 fun BtleDevice.toEntity(): BTLEDeviceEntity {
-    // Skip if deviceAddress is null
-
     return BTLEDeviceEntity(
         deviceAddress = this.deviceAddress.toString(),
         deviceManufacturer = this.deviceManufacturer,
@@ -39,13 +37,13 @@ fun BTLEDeviceEntity.toBtleDevice(): BtleDevice {
         deviceManufacturer = this.deviceManufacturer,
         deviceName = this.deviceName,
         deviceAddress = this.deviceAddress,
-        signalStrength = this.rssi,          // signalStrength is set to null
+        signalStrength = this.rssi,          // rssi will get last record
         isParent = false,              // isParent is set to false by default
         isTarget = false,              // isTarget is set to false by default
         isSuspicious = this.isSuspicious, // Transfer from BTLEDeviceEntity
         isTag = false,                 // isTag is set to false by default
         nickName = this.deviceNickname,
-        timeStamp = this.timestamp.firstOrNull() ?: 0L, // Use the first timestamp value, default to 0L if empty
+        timeStamp = this.timestamp.first(), // Use the first timestamp value, default to 0L if empty
         deviceUuid = this.UUID
     )
 }

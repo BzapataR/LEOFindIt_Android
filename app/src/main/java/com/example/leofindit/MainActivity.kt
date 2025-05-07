@@ -38,6 +38,7 @@ import com.example.leofindit.composables.introduction.LocationAccess
 import com.example.leofindit.composables.introduction.NotificationPermission
 import com.example.leofindit.composables.introduction.PermissionsDone
 import com.example.leofindit.composables.settings.AppInfo
+import com.example.leofindit.composables.settings.DeviceByDb
 import com.example.leofindit.composables.settings.MarkedDevices
 import com.example.leofindit.composables.settings.Settings
 import com.example.leofindit.composables.trackerDetails.ObserveTracker
@@ -181,6 +182,12 @@ fun MainNavigator(
         }
         composable ("Marked Devices"){
             MarkedDevices(navController = mainNavigator, dbViewModel=dbViewModel)
+        }
+        composable("Device From Db/{address}", arguments = listOf(navArgument("address"){type =
+            NavType.StringType})
+        ) { backStackEntry ->
+            val address = backStackEntry.arguments?.getString("address") ?: return@composable
+            DeviceByDb(navController = mainNavigator, dbViewModel=dbViewModel, address = address)
         }
     }
 }

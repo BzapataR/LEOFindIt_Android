@@ -116,7 +116,7 @@ fun PreviousDeviceListEntry(navController: NavController?, device : BtleDevice) 
             containerColor = Surface
         ),
         onClick = {
-            navController?.navigate(route ="Tracker Details/$address")
+            navController?.navigate(route ="Device From Db/$address")
         }
     ) {
         Row(

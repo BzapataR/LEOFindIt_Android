@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -63,6 +64,9 @@ fun MarkedDevices(navController: NavController? = null, dbViewModel: BtleDbViewM
     val items = listOf("Black List Devices", "White List Devices")
     var expandedItem by remember { mutableIntStateOf(-1) } // Track which item is expanded
 
+    LaunchedEffect(Unit) {
+        dbViewModel.loadData()
+    }
     val blackList by dbViewModel.blackList.collectAsState()
     val whiteList by dbViewModel.whiteList.collectAsState()
 

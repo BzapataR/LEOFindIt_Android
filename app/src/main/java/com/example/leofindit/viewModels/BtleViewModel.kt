@@ -13,6 +13,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.leofindit.model.AppDatabase
 import com.example.leofindit.model.BtleDevice
 import com.example.leofindit.model.DeviceScanner
+import com.example.leofindit.model.toEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -71,7 +72,7 @@ class BtleViewModel(application: Application) : AndroidViewModel(application) {
 
     // Update a device state safely using copy()
     @SuppressLint("SuspiciousIndentation")
-    fun updateDeviceState(address: String, isSuspicious: Boolean?) {
+    fun updateDeviceState(address: String, isSuspicious: Boolean?): BtleDevice {
         val device: BtleDevice = _scannedDevices.value.find { it.deviceAddress == address }
             ?: throw NoSuchElementException("No device found with address : $address")
         when (isSuspicious) {
@@ -80,6 +81,7 @@ class BtleViewModel(application: Application) : AndroidViewModel(application) {
             null -> device.markNeutral()
         }
         Log.i("Device Call out", "Device: ${device.deviceName}, is suspicious = ${device.getIsSuspicious()}")
+        return device
     }
     // to see if device is marked sus or safe
     fun isDeviceMarked(device: BtleDevice) : Boolean {
@@ -101,6 +103,33 @@ class BtleViewModel(application: Application) : AndroidViewModel(application) {
     fun findDevice(address: String): BtleDevice {
         return   _scannedDevices.value.find { it.deviceAddress == address }
             ?: throw NoSuchElementException("No device found with address: $address")
+    }
+
+
+    suspend fun insertOrUpdateAndSync(device: BtleDevice, database : AppDatabase): BtleDevice {
+        val address = device.deviceAddress!!
+        val existing = database.btleDeviceDao().getDeviceByAddress(address) ?: return device
+
+        // Append current timestamp to list
+        val updatedTimestamps = existing.timestamp.toMutableList().apply {
+            add(device.timeStamp)
+        }
+
+        // Save updated entity to DB
+        val updatedEntity = existing.copy(
+            timestamp = updatedTimestamps,
+        )
+        database.btleDeviceDao().insert(updatedEntity)
+
+        // This is the real updated device we want to return
+        val updatedDevice = device.copy(
+            nickName = updatedEntity.deviceNickname,
+            isSuspicious = updatedEntity.isSuspicious,
+        )
+
+        Log.i("DataBase Device record", "DB device: $updatedEntity")
+        Log.i("Device update", "Device update from DB, new device: $updatedDevice")
+        return updatedDevice
     }
 
 }
