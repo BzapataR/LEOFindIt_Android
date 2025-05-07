@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "93378d37c4ac6e778681b685225e0d4f",
+    "identityHash": "dd12609cbb5e3b3dfea358cfebdcc622",
     "entities": [
       {
         "tableName": "btle_devices",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`deviceAddress` TEXT NOT NULL, `deviceManufacturer` TEXT NOT NULL, `deviceType` TEXT NOT NULL, `signalStrength` INTEGER NOT NULL, `isSafe` INTEGER NOT NULL, `isSuspicious` INTEGER NOT NULL, PRIMARY KEY(`deviceAddress`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`deviceAddress` TEXT NOT NULL, `Device Manufacture` TEXT NOT NULL, `Device Name` TEXT NOT NULL, `Device Type` TEXT NOT NULL, `is Suspicious` INTEGER, `Device Nickname` TEXT NOT NULL, `Time Stamp` TEXT NOT NULL, `UUID` TEXT NOT NULL, `Last RSSI` INTEGER NOT NULL, PRIMARY KEY(`deviceAddress`))",
         "fields": [
           {
             "fieldPath": "deviceAddress",
@@ -16,31 +16,49 @@
           },
           {
             "fieldPath": "deviceManufacturer",
-            "columnName": "deviceManufacturer",
+            "columnName": "Device Manufacture",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceName",
+            "columnName": "Device Name",
             "affinity": "TEXT",
             "notNull": true
           },
           {
             "fieldPath": "deviceType",
-            "columnName": "deviceType",
+            "columnName": "Device Type",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "signalStrength",
-            "columnName": "signalStrength",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "isSafe",
-            "columnName": "isSafe",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
             "fieldPath": "isSuspicious",
-            "columnName": "isSuspicious",
+            "columnName": "is Suspicious",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "deviceNickname",
+            "columnName": "Device Nickname",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "Time Stamp",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "UUID",
+            "columnName": "UUID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rssi",
+            "columnName": "Last RSSI",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -58,7 +76,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '93378d37c4ac6e778681b685225e0d4f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dd12609cbb5e3b3dfea358cfebdcc622')"
     ]
   }
 }

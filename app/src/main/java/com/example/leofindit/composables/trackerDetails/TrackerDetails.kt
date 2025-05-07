@@ -67,6 +67,7 @@ import com.example.leofindit.ui.theme.GoldPrimaryDull
 import com.example.leofindit.ui.theme.LeoFindItTheme
 import com.example.leofindit.ui.theme.OnSurface
 import com.example.leofindit.ui.theme.Purple40
+import com.example.leofindit.viewModels.BtleDbViewModel
 import com.example.leofindit.viewModels.BtleViewModel
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
@@ -78,11 +79,25 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun TrackerDetails(
     navController: NavController? = null,
-    viewModel: BtleViewModel? = null,
-    address: String
+    viewModel: BtleViewModel,
+    address: String,
+    dbViewModel: BtleDbViewModel,
 ) {
 // Device vars
-    val device = viewModel!!.findDevice(address)
+    var databaseDevice: BtleDevice? = null
+    
+    LaunchedEffect(Unit) {
+        databaseDevice = dbViewModel.findDevice(address)
+        Log.i("DB device" ,"$databaseDevice")
+    }
+    var device : BtleDevice = if (databaseDevice != null)
+    {
+        databaseDevice as BtleDevice
+    }
+    else {
+        viewModel.findDevice(address)
+    }
+        //var device = viewModel!!.findDevice(address)
     var ignoreTracker by remember { mutableStateOf(viewModel.isDeviceMarked(device)) }
     var showDialog by remember { mutableStateOf(false) }
     var nickname by remember { mutableStateOf(device.getNickName() ?: "") }
@@ -117,10 +132,11 @@ fun TrackerDetails(
     var selectedIndex by remember {
         mutableIntStateOf(
             if (!viewModel.isDeviceMarked(device)) -1
-            else if (device.getIsSafe()) 0
+            else if (device.getIsSuspicious() == false) 0
             else 1
         )
     }
+
 
     LazyColumn {
         item {
@@ -202,46 +218,43 @@ fun TrackerDetails(
                         val inactiveBackgroundColor =
                             if (index == 0) Color.LightGray else Color.Black
                         val inactiveContentColor = if (index == 0) Color.Black else Color.LightGray
+
                         SegmentedButton(
                             shape = SegmentedButtonDefaults.itemShape(
                                 index = index,
                                 count = options.size
                             ),
                             onClick = {
+                                // Toggle selection
                                 selectedIndex = if (isSelected) -1 else index
+
                                 when (selectedIndex) {
+                                    // Neutral (null) state: delete device
                                     -1 -> {
-                                        viewModel.updateDeviceState(address, false, false)
+                                        viewModel.updateDeviceState(address, null) // Set state to null (neutral)
+                                        dbViewModel.deleteDevice(device)
                                         ignoreTracker = true
-                                        Log.i(
-                                            "Update Device Call",
-                                            "Index is: $selectedIndex Device set to neutral"
-                                        )
+                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to neutral")
                                     }
 
+                                    // Mark Safe: set isSuspicious to false (0)
                                     0 -> {
-                                        viewModel.updateDeviceState(
-                                            address = address,
-                                            isSafe = true,
-                                            isSuspicious = false
-                                        )
-                                        Log.i(
-                                            "Update Device Call",
-                                            "Index is: $selectedIndex Device set to safe"
-                                        )
+                                        viewModel.updateDeviceState(address, isSuspicious = false)
+                                        dbViewModel.addDevice(device)
+                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to safe")
                                     }
 
+                                    // Mark Suspicious: set isSuspicious to true (1)
                                     1 -> {
-                                        viewModel.updateDeviceState(address, false, true)
-                                        Log.i(
-                                            "Update Device Call",
-                                            "Index is: $selectedIndex Device set to suspicious"
-                                        )
+                                        viewModel.updateDeviceState(address, isSuspicious = true)
+                                        dbViewModel.addDevice(device)
+                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to suspicious")
                                     }
                                 }
+
                                 Log.i(
                                     "Updated Device Call",
-                                    "Device: ${device.deviceAddress} is Safe: ${device.getIsSafe()} is suspicious: ${device.getIsSuspicious()}"
+                                    "Device: ${device.deviceAddress} is suspicious: ${device.getIsSuspicious()}"
                                 )
                             },
                             selected = index == selectedIndex,
@@ -257,6 +270,7 @@ fun TrackerDetails(
                         }
                     }
                 }
+
                 //********************************************************************************
                 //                       Device Address, Manufacturer, and Type
                 //********************************************************************************
@@ -360,8 +374,7 @@ fun TrackerDetails(
                                 checked = selectedIndex == -1,
                                 onCheckedChange = { isChecked ->
                                     viewModel.updateDeviceState(
-                                        isSafe = false,
-                                        isSuspicious = false,
+                                        isSuspicious = null,
                                         address = address
                                     )
                                     selectedIndex = -1
@@ -371,7 +384,7 @@ fun TrackerDetails(
                     )
 
                     HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
-                    
+
                     RoundedListItem(
                         color = Color.Yellow,
                         icon = Icons.Filled.Create,
@@ -472,7 +485,6 @@ fun TrackerDetailsPreview() {
         signalStrength = -100,
         isSuspicious = false,
         isTag = false,
-        isSafe = true,
         isParent = false,
         isTarget = false,
         nickName = "null",

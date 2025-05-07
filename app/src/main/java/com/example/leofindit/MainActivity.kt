@@ -17,7 +17,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -43,12 +43,15 @@ import com.example.leofindit.composables.settings.Settings
 import com.example.leofindit.composables.trackerDetails.ObserveTracker
 import com.example.leofindit.composables.trackerDetails.PrecisionFinding
 import com.example.leofindit.composables.trackerDetails.TrackerDetails
-import com.example.leofindit.controller.DeviceController
-import com.example.leofindit.model.BtleDevice
+import com.example.leofindit.model.AppDatabase
+import com.example.leofindit.model.DatabaseProvider
 import com.example.leofindit.model.DeviceScanner
 import com.example.leofindit.ui.theme.Background
 import com.example.leofindit.ui.theme.LeoFindItTheme
+import com.example.leofindit.viewModels.BtleDbViewModel
 import com.example.leofindit.viewModels.BtleViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 
 
@@ -62,13 +65,13 @@ class MainActivity : ComponentActivity() {
      *                   Device Bt scanning vars
      *********************************************************************************/
     internal lateinit var deviceScanner: DeviceScanner
-    private lateinit var deviceController: DeviceController
-    private val scannedDevices = mutableStateListOf<BtleDevice>()
     private var tag = "MainActivity"
     private val btleViewModel: BtleViewModel by viewModels()
-
+    private lateinit var database: AppDatabase
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
     @SuppressLint("SupportAnnotationUsage", "MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
+        database = DatabaseProvider.getDatabase(context = this)
         tag = "MainActivity.onCreate()"
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -78,6 +81,7 @@ class MainActivity : ComponentActivity() {
             .isAppearanceLightStatusBars = false
         setContent {
             LeoFindItTheme {
+                val btleDbViewModel : BtleDbViewModel = viewModel(factory = BtleDbViewModel.provideFactory(database))
                 BtHelper.init(context = this)
                 LocationHelper.locationInit(context = this)
                 val mainNavController = rememberNavController()
@@ -116,21 +120,14 @@ class MainActivity : ComponentActivity() {
                     } else {
                         MainNavigator(
                             mainNavigator = mainNavController,
-                            viewModel = btleViewModel
+                            viewModel = btleViewModel,
+                            dbViewModel = btleDbViewModel
                         )
                     }
                 }
             }
 
         }
-
-        deviceScanner.setScanCallback { devices ->
-            scannedDevices.clear()
-            scannedDevices.addAll(devices)
-            println("Number of scanned devices: ${scannedDevices.size}")
-
-        }
-
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
@@ -145,7 +142,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 @RequiresPermission(allOf = [Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN])
 @SuppressLint("SupportAnnotationUsage")
-fun MainNavigator(mainNavigator: NavHostController, viewModel: BtleViewModel) {
+fun MainNavigator(
+    mainNavigator : NavHostController,
+    viewModel : BtleViewModel,
+    dbViewModel : BtleDbViewModel
+) {
     NavHost(
         navController = mainNavigator,
         startDestination = "Manual Scan"
@@ -157,7 +158,12 @@ fun MainNavigator(mainNavigator: NavHostController, viewModel: BtleViewModel) {
             NavType.StringType}))
         { backStackEntry ->
             val  address = backStackEntry.arguments?.getString("address") ?:return@composable
-            TrackerDetails(navController = mainNavigator, viewModel = viewModel, address = address)
+            TrackerDetails(
+                navController = mainNavigator,
+                viewModel = viewModel,
+                address = address,
+                dbViewModel = dbViewModel
+            )
         }
         composable("Precision Finding/{address}", arguments = listOf(navArgument("address") { type = NavType.StringType })
         ) { backStackEntry ->
@@ -174,7 +180,7 @@ fun MainNavigator(mainNavigator: NavHostController, viewModel: BtleViewModel) {
             ObserveTracker(navController = mainNavigator)
         }
         composable ("Marked Devices"){
-            MarkedDevices(navController = mainNavigator)
+            MarkedDevices(navController = mainNavigator, dbViewModel=dbViewModel)
         }
     }
 }

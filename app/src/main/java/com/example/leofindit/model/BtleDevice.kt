@@ -9,10 +9,9 @@ data class BtleDevice(
     val deviceName: String,
     val deviceAddress: String?,
     var signalStrength: Int?,
-    private var isSafe: Boolean,
     val isParent: Boolean,
     var isTarget: Boolean,
-    private var isSuspicious: Boolean,
+    private var isSuspicious: Boolean?, //True = sus, False = safe, null = neutral
     val isTag: Boolean,
     private var nickName: String,
     val timeStamp: Long,
@@ -22,20 +21,18 @@ data class BtleDevice(
 
     private var lTag: String = "BTLEDevice"
 
-    private fun setIsSuspicious(suspicious: Boolean){
-        isSuspicious = suspicious
+    private fun setAsSuspicious(){
+        isSuspicious = true
     }
-    fun getIsSuspicious():Boolean{
+    fun getIsSuspicious():Boolean?{
         return isSuspicious
     }
-
-    private fun setIsSafe(safe: Boolean){
-        isSafe = safe
+    fun setAsSafe () {
+        isSuspicious = false
     }
-    fun getIsSafe(): Boolean {
-        return isSafe
+    fun setAsNeutral() {
+        isSuspicious = null
     }
-
     fun setNickName(newNickName: String) {
         var oldNickName = getNickName()
         nickName = newNickName
@@ -43,34 +40,21 @@ data class BtleDevice(
     }
 
     fun getNickName(): String? {
-        val s: String = nickName
-        return s
+        return nickName
     }
 
     fun markSafe(){
-        setIsSafe(true)
-        setIsSuspicious(false)
+        setAsSafe()
         Log.i(lTag, "${getNickName()} ($deviceType) marked as safe.")
     }
 
-    fun markUnsafe(){
-        setIsSafe(false)
-        Log.i(lTag, "${getNickName()} ($deviceType) marked as unsafe.")
-    }
-
     fun markSuspicious(){
-        setIsSuspicious(true)
-        setIsSafe(false)
+        setAsSuspicious()
         Log.i(lTag, "${getNickName()} ($deviceType) marked as suspicous.")
     }
-    fun markNotSuspicious(){
-        setIsSuspicious(false)
-        Log.i(lTag, "${getNickName()} ($deviceType) marked as not suspicious.")
-    }
 
-    fun markUnknown(){
-        setIsSuspicious(false)
-        setIsSafe(false)
+    fun markNeutral(){
+        setAsNeutral()
         Log.i(lTag, "${getNickName()} ($deviceType) marked as unknown.")
     }
 

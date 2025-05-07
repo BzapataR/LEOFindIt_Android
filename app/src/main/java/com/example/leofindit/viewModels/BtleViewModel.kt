@@ -6,7 +6,11 @@ import android.app.Application
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.leofindit.model.AppDatabase
 import com.example.leofindit.model.BtleDevice
 import com.example.leofindit.model.DeviceScanner
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,20 +71,19 @@ class BtleViewModel(application: Application) : AndroidViewModel(application) {
 
     // Update a device state safely using copy()
     @SuppressLint("SuspiciousIndentation")
-    fun updateDeviceState(address: String, isSafe: Boolean, isSuspicious: Boolean) {
+    fun updateDeviceState(address: String, isSuspicious: Boolean?) {
         val device: BtleDevice = _scannedDevices.value.find { it.deviceAddress == address }
             ?: throw NoSuchElementException("No device found with address : $address")
-                when {
-                    isSafe && !isSuspicious -> device.markSafe()
-                    isSuspicious && !isSafe -> device.markSuspicious()
-                    !isSafe && !isSuspicious -> device.markUnknown()
-                }
-                device.copy(isSafe = isSafe, isSuspicious = isSuspicious)
-        Log.i("Device Call out", "Device: ${device.deviceName}, is suspicious = ${device.getIsSuspicious()}, is safe = ${device.getIsSafe()}")
+        when (isSuspicious) {
+            false -> device.markSafe()
+            true -> device.markSuspicious()
+            null -> device.markNeutral()
+        }
+        Log.i("Device Call out", "Device: ${device.deviceName}, is suspicious = ${device.getIsSuspicious()}")
     }
     // to see if device is marked sus or safe
     fun isDeviceMarked(device: BtleDevice) : Boolean {
-        return(device.getIsSuspicious() || device.getIsSafe())
+        return(device.getIsSuspicious() != null)
     }
 
 
@@ -96,7 +99,7 @@ class BtleViewModel(application: Application) : AndroidViewModel(application) {
 
     //finds device based on device address
     fun findDevice(address: String): BtleDevice {
-        return _scannedDevices.value.find { it.deviceAddress == address }
+        return   _scannedDevices.value.find { it.deviceAddress == address }
             ?: throw NoSuchElementException("No device found with address: $address")
     }
 

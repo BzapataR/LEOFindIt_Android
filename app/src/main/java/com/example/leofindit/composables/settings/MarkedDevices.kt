@@ -1,6 +1,7 @@
 package com.example.leofindit.composables.settings
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -36,23 +38,59 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.leofindit.R
 import com.example.leofindit.composables.DeviceDetailEntryPreview
+import com.example.leofindit.composables.DeviceListEntry
+import com.example.leofindit.composables.PreviousDeviceListEntry
+import com.example.leofindit.model.toBtleDevice
+import com.example.leofindit.model.toBtleDeviceList
 import com.example.leofindit.ui.theme.Background
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.GoldPrimaryDull
 import com.example.leofindit.ui.theme.LeoFindItTheme
 import com.example.leofindit.ui.theme.Surface
+import com.example.leofindit.viewModels.BtleDbViewModel
+
 //********************************************************************************
 //                    Page to display devices that are white
 //                    listed or black listed
 //********************************************************************************
 @Composable
-fun MarkedDevices(navController: NavController? = null) {
+fun MarkedDevices(navController: NavController? = null, dbViewModel: BtleDbViewModel) {
 
     val items = listOf("Black List Devices", "White List Devices")
     var expandedItem by remember { mutableIntStateOf(-1) } // Track which item is expanded
+
+    val blackList by dbViewModel.blackList.collectAsState()
+    val whiteList by dbViewModel.whiteList.collectAsState()
+
+    val blackListBT = blackList.toBtleDeviceList()
+    val whiteListBT = whiteList.toBtleDeviceList()
+
+
+    /*
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⣤⣤⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣸⣿⡏⠀⠀⠀⣠⣶⣾⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣄⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣿⣿⠁⠀⠀⢰⣿⣿⣯⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⢿⣷⡄⠀
+⠀⠀⣀⣤⣴⣶⣶⣿⡟⠀⠀⠀⢸⣿⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣷⠀
+⠀⢰⣿⡟⠋⠉⣹⣿⡇⠀⠀⠀⠘⣿⣿⣿⣿⣷⣦⣤⣤⣤⣶⣶⣶⣶⣿⣿⣿⠀
+⠀⢸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃⠀
+⠀⣸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠉⠻⠿⣿⣿⣿⣿⡿⠿⠿⠛⢻⣿⡇⠀⠀
+⠀⣿⣿⠁⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣧⠀⠀
+⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀
+⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀
+⠀⢿⣿⡆⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⡇⠀⠀
+⠀⠸⣿⣧⡀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠃⠀⠀
+⠀⠀⠛⢿⣿⣿⣿⣿⣇⠀⠀⠀⠀⠀⣰⣿⣿⣷⣶⣶⣶⣶⠶⠀⢠⣿⣿⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⣽⣿⡏⠁⠀⠀⢸⣿⡇⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⢹⣿⡆⠀⠀⠀⣸⣿⠇⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⢿⣿⣦⣄⣀⣠⣴⣿⣿⠁⠀⠈⠻⣿⣿⣿⣿⡿⠏⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+     */
 
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -88,17 +126,20 @@ fun MarkedDevices(navController: NavController? = null) {
             ExpandableCard(
                 title = item,
                 isExpanded = expandedItem == index,
-                onClick = { expandedItem = if (expandedItem == index) -1 else index }
+                onClick = { expandedItem = if (expandedItem == index) -1 else index
+                    Log.d("BtleDbViewModel", "Fetched blackList: $blackListBT")
+                    Log.d("BtleDbViewModel", "Fetched whiteList: $whiteListBT")
+                }
             )
             {
                 if (item == "Black List Devices") {
-                    repeat(3) {
-                        DeviceDetailEntryPreview()
+                    blackListBT.forEach { device ->
+                        PreviousDeviceListEntry(navController = navController,device = device)
                         //todo: get From BlackList data base
                     }
                 } else {
-                    repeat(10) {
-                        DeviceDetailEntryPreview()
+                    whiteListBT.forEach { device ->
+                        PreviousDeviceListEntry(navController = navController, device = device)
                         //todo: get From WhiteList List data base
                     }
                 }
@@ -147,7 +188,7 @@ fun ExpandableCard(title: String, isExpanded: Boolean, onClick: () -> Unit, cont
 fun BlackListPreview() {
     LeoFindItTheme {
         Scaffold(modifier = Modifier.background(color = Background)) {
-            MarkedDevices()
+            MarkedDevices(dbViewModel = TODO())
         }
     }
 }

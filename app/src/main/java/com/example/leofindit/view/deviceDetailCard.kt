@@ -123,7 +123,7 @@ fun DeviceDetailCard(
                 Text("Safe Device", color = OnSurface)
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
-                    checked = device.getIsSafe(), // Use getter
+                    checked = device.getIsSuspicious()== null, // Use getter
                     onCheckedChange = { isChecked ->
                         onSafeClick(device)
                     }
@@ -137,7 +137,7 @@ fun DeviceDetailCard(
                 Text("Suspicious Device", color = OnSurface)
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
-                    checked = device.getIsSuspicious(), // Use getter
+                    checked = device.getIsSuspicious() == null, // Use getter
                     onCheckedChange = { isChecked ->
                         onSuspiciousClick(device)
                     }

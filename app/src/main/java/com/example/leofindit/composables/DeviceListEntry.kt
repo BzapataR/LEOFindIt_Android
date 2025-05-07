@@ -70,7 +70,6 @@ fun DeviceListEntry(navController: NavController? = null, device : BtleDevice) {
             Row (horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ){
-
                 // Signal strength icon aligned to the end
                 val signalStrengthIcon = when {
                     device.signalStrength!! >= -50 -> LeoIcons.SignalStrengthHigh
@@ -108,13 +107,61 @@ fun DeviceListEntry(navController: NavController? = null, device : BtleDevice) {
         }
     }
 }
-
+@Composable
+fun PreviousDeviceListEntry(navController: NavController?, device : BtleDevice) {
+    val address = device.deviceAddress
+    Card(
+        modifier = Modifier.size(width = 360.dp, height = 40.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Surface
+        ),
+        onClick = {
+            navController?.navigate(route ="Tracker Details/$address")
+        }
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left-side content
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Icon(
+                    imageVector = LeoIcons.Bluetooth, // Change once database of different device types
+                    contentDescription = "Device Type Icon",
+                    tint = Color.Unspecified
+                )
+                Text(
+                    text = device.deviceName,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.width(192.dp),
+                    color = GoldPrimaryDull
+                )
+            }
+            Row (horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Signal Strength",
+                    tint = Color.LightGray,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+        }
+    }
+}
 @Preview
 @Composable
 fun DeviceDetailEntryPreview() {
-    val device1 = BtleDevice(deviceType = "", deviceUuid = "", deviceManufacturer = "", deviceAddress = "", deviceName = "Device 1", isSafe = true, isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -90)
-    val device2 = BtleDevice(deviceType = "", deviceUuid = "", deviceManufacturer = "", deviceAddress = "", deviceName = "Device 2", isSafe = true, isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -60)
-    val device3 = BtleDevice(deviceType = "", deviceUuid = "", deviceManufacturer = "", deviceAddress = "", deviceName = "Device 3", isSafe = true, isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = 0)
+    val device1 = BtleDevice(deviceType = "", deviceUuid = "", deviceManufacturer = "", deviceAddress = "", deviceName = "Device 1", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -90)
+    val device2 = BtleDevice(deviceType = "", deviceUuid = "", deviceManufacturer = "", deviceAddress = "", deviceName = "Device 2", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -60)
+    val device3 = BtleDevice(deviceType = "", deviceUuid = "", deviceManufacturer = "", deviceAddress = "", deviceName = "Device 3", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = 0)
     Column(
         Modifier.padding(12.dp)
     ) {
