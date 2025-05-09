@@ -2,7 +2,11 @@ package com.example.leofindit.model
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanResult
 import android.content.Context
@@ -58,23 +62,23 @@ class DeviceScanner(private val context: Context) {
 
     private val leScanCallback = object : android.bluetooth.le.ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED )
+                {
+                    Log.e("Permission Error", "Unknown Device (No BT Connect Permission)")
+                    return
+                }
             val device = result.device
             val rssi = result.rssi
             val scanRecord = result.scanRecord
 
 
-            val deviceName =
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    device.name ?: "Unknown Device"
-                } else {
-                    "Unknown Device (No BT Connect Permission)"
-                }
+            val deviceName = device.name ?: "Unknown Device"
 
             val deviceAddress = device.address ?: "Unknown" // Get the MAC address
+
 
             // Extract UUIDs from ScanRecord
             val uuids: MutableList<String> = mutableListOf()
@@ -106,37 +110,9 @@ class DeviceScanner(private val context: Context) {
                 deviceAddress = deviceAddress,
                 signalStrength = rssi,
                 timeStamp = System.currentTimeMillis(),
+                nickName = device.alias,
                 deviceUuid = uuidString // Store UUIDs as a comma-separated string
             )
-/**
- * @Note: This is commented out until logic implemented to store Only Blacklist/Whitelist data persistently.
-            CoroutineScope(Dispatchers.IO).launch {
-                // Safely create deviceEntity
-                if (btleDevice.deviceAddress != null && btleDevice.signalStrength != null) {
-                    val deviceEntity = BTLEDeviceEntity(
-                        deviceAddress = btleDevice.deviceAddress,
-                        deviceManufacturer = btleDevice.deviceManufacturer,
-                        deviceType = btleDevice.deviceType,
-                        signalStrength = btleDevice.signalStrength,
-                        isSafe = btleDevice.getIsSafe(),
-                        isSuspicious = btleDevice.getIsSuspicious()
-                    )
-
-                    val existingDevice =
-                        btleDeviceDao.getDeviceByAddress(deviceEntity.deviceAddress)
-                    if (existingDevice == null) {
-                        btleDeviceDao.insert(deviceEntity)
-                    } else {
-                        btleDeviceDao.update(deviceEntity) // Update instead of insert
-                    }
-                } else {
-                    Log.e(tag, "deviceAddress or signalStrength is null for ${btleDevice.deviceName}")
-                    // Handle the case where deviceAddress or signalStrength is null
-                    // You might want to log this, or skip saving the device to the database
-                }
-            }// End of CoRoutine
-            */ //End of commented out code.
-
 
             // Update the scanResults list
             if (existingDeviceIndex == -1) {
@@ -157,6 +133,87 @@ class DeviceScanner(private val context: Context) {
             Log.e(tag, "Scan failed with error: $errorCode")
         }
     }// End of leScanCallback
+
+    fun interrogateDevice(deviceAddress : String) {
+        val device = bluetoothAdapter?.getRemoteDevice(deviceAddress) ?: run {
+            Log.e(tag, "Error device with address: $deviceAddress not found")
+            return
+        }
+        Log.d(tag, "Interrogating device: ${device.address}")
+        if(ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            Log.e(tag, "Cannot connect connect: BLUETOOTH_CONNECT Permission denied")
+            return
+        }
+        else {
+            device.connectGatt(context, false, object: BluetoothGattCallback() {
+                @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+                override fun onConnectionStateChange(
+                    gatt: BluetoothGatt?,
+                    status: Int,
+                    newState: Int
+                ) {
+                    if(newState == BluetoothProfile.STATE_CONNECTED) {
+                        gatt?.discoverServices()
+                        Log.d(tag, "Device Connected: ${device.address}! Discovering Series...")
+                    }
+                    else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                        Log.d(tag, "Disconnected from ${device.address}")
+                    }
+                    else if (status != BluetoothGatt.GATT_SUCCESS) {
+                        Log.e(tag, "Connection state change error: $status for device: ${device.address}")
+                    }
+                }
+
+                @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+                override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+                    if (status == BluetoothGatt.GATT_SUCCESS && gatt != null) {
+                        Log.d(tag, "Services discovered for ${device.address}")
+                        // getting uuids from gatt
+                        val allUuids = mutableSetOf<String>()
+                        gatt.services.forEach { service ->
+                            allUuids.add(service.uuid.toString())
+                        }
+                        val deviceName =
+                            gatt.device.name ?: "Unknown Device"
+                        gatt.device.alias
+                        //Updating device within the scanResults
+                        val existingDevice = scanResults.find { it.deviceAddress == device.address }
+                        if (existingDevice != null) {
+                            existingDevice.deviceUuid = allUuids.joinToString(", ")
+                            existingDevice.deviceName = deviceName
+                            scanCallback?.invoke(scanResults.toList())
+                        }
+//                        else {
+//                            // if device was not found before, should not trigger in application but added just in case
+//                            val newDevice = BtleDevice(
+//                                deviceType = "Generic BLE Device",
+//                                deviceManufacturer = existingDevice?.deviceManufacturer.toString(),
+//                                deviceName = deviceName,
+//                                deviceAddress = device.address,
+//                                signalStrength = 0,
+//                                timeStamp = System.currentTimeMillis(),
+//                                deviceUuid = allUuids.joinToString(", ")
+//                            )
+//                            scanResults.add(newDevice)
+//                            scanCallback?.invoke(scanResults.toList())
+//                        }
+//                        existingDevice?.deviceUuid = allUuids.joinToString(", ")
+//                        // Notify that the UUIDs are available
+//                        scanCallback?.invoke(scanResults.toList())
+                        gatt.close()
+                    }
+                    else{
+                        Log.e(
+                            tag,
+                            "onServiceDiscovered failed with status: $status for device ${device.address}"
+                            )
+                        gatt?.close()
+                    }
+                }
+            }
+            )
+        }
+    }
 
     /**
      * This function contains the core logic for calling system method to start BT Scan.

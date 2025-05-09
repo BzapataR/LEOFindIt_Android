@@ -4,9 +4,9 @@ import android.util.Log
 
 
 data class BtleDevice(
-    val deviceType: String,
+    var deviceType: String,
     val deviceManufacturer: String,
-    val deviceName: String,
+    var deviceName: String,
     val deviceAddress: String?,
     var signalStrength: Int?,
     val isParent: Boolean = false,
