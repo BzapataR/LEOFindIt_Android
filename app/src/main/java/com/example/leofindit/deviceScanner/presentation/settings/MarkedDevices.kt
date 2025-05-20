@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.leofindit.R
-import com.example.leofindit.deviceScanner.presentation.components.PreviousDeviceListEntry
+import com.example.leofindit.deviceScanner.presentation.universalComponents.PreviousDeviceListEntry
 import com.example.leofindit.deviceScanner.data.toBtleDeviceList
 import com.example.leofindit.ui.theme.Background
 import com.example.leofindit.ui.theme.GoldPrimary

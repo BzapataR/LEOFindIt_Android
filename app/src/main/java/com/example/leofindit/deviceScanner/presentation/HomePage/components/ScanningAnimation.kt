@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.components
+package com.example.leofindit.deviceScanner.presentation.HomePage.components
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode

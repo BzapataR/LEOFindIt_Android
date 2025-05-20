@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.components
+package com.example.leofindit.deviceScanner.presentation.HomePage.components
 
 import android.util.Log
 import androidx.compose.material3.MaterialTheme

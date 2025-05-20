@@ -40,12 +40,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavController
-import com.example.leofindit.BtHelper
-import com.example.leofindit.LocationHelper
+import com.example.leofindit.controller.BtHelper
+import com.example.leofindit.controller.LocationHelper
 import com.example.leofindit.R
-import com.example.leofindit.deviceScanner.presentation.components.DeviceListEntry
-import com.example.leofindit.deviceScanner.presentation.components.MissingPermissons
-import com.example.leofindit.deviceScanner.presentation.components.Scanning
+import com.example.leofindit.deviceScanner.presentation.universalComponents.DeviceListEntry
+import com.example.leofindit.deviceScanner.presentation.HomePage.components.MissingPermissons
+import com.example.leofindit.deviceScanner.presentation.HomePage.components.Scanning
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.InversePrimary
 import com.example.leofindit.ui.theme.LeoFindItTheme

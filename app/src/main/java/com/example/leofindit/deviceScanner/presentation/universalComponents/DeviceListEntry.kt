@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.components
+package com.example.leofindit.deviceScanner.presentation.universalComponents
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

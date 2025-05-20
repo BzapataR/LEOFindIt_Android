@@ -45,7 +45,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavController
 import com.example.leofindit.R
-import com.example.leofindit.deviceScanner.presentation.components.RoundedListItem
+import com.example.leofindit.deviceScanner.presentation.universalComponents.RoundedListItem
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.LeoFindItTheme
 import com.example.leofindit.viewModels.BtleViewModel

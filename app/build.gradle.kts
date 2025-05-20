@@ -4,12 +4,11 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("com.google.devtools.ksp")
     alias(libs.plugins.compose.compiler)
-
 }
 
 android {
     namespace = "com.example.leofindit"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.leofindit"
@@ -23,9 +22,7 @@ android {
                 arguments.put("room.schemaLocation", "$projectDir/schemas")
             }
         }
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
+
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -61,7 +58,9 @@ android {
         }
     }
 }
-
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
 dependencies {
 
     implementation(libs.accompanist.permissions)

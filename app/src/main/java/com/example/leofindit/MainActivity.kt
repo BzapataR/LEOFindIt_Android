@@ -31,6 +31,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.leofindit.controller.BtHelper
+import com.example.leofindit.controller.LocationHelper
 import com.example.leofindit.deviceScanner.data.DeviceScanner
 import com.example.leofindit.deviceScanner.data.database.AppDatabase
 import com.example.leofindit.deviceScanner.data.database.DatabaseProvider

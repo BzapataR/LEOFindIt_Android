@@ -29,9 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.leofindit.LocationHelper
-import com.example.leofindit.LocationHelper.checkingLocationEnabledState
-import com.example.leofindit.LocationHelper.rememberLocationPermissionState
+import com.example.leofindit.controller.LocationHelper
+import com.example.leofindit.controller.LocationHelper.checkingLocationEnabledState
+import com.example.leofindit.controller.LocationHelper.rememberLocationPermissionState
 import com.example.leofindit.R
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.GoldPrimaryDull

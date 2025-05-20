@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.components
+package com.example.leofindit.deviceScanner.presentation.universalComponents
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.components
+package com.example.leofindit.deviceScanner.presentation.HomePage.components
 
 import android.Manifest
 import androidx.annotation.RequiresPermission
@@ -26,8 +26,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.leofindit.BtHelper
-import com.example.leofindit.LocationHelper
+import com.example.leofindit.controller.BtHelper
+import com.example.leofindit.controller.LocationHelper
 import com.example.leofindit.R
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.LeoFindItTheme

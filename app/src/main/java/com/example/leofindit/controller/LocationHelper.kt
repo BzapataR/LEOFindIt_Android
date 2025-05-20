@@ -1,4 +1,4 @@
-package com.example.leofindit
+package com.example.leofindit.controller
 
 import android.Manifest
 import android.annotation.SuppressLint
