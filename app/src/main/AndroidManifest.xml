@@ -19,9 +19,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/leo_logo_drawable"
+        android:icon="@mipmap/leo_find_it_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/leo_logo_drawable"
+        android:roundIcon="@mipmap/leo_find_it_icon_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.App.Starting"
         >

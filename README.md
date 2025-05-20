@@ -43,7 +43,6 @@ The application follows a Model-View-Controller (MVC) architecture, implemented 
 
 The application is currently under development. Key features such as device scanning, device classification, and basic UI elements are implemented. Ongoing work focuses on:
 
-* Improving UI/UX.
 * Enhancing device filtering and sorting.
 * Implementing precise device location features.
 * Optimizing performance and battery usage.

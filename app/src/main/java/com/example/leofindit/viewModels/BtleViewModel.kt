@@ -6,19 +6,13 @@ import android.app.Application
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import com.example.leofindit.model.AppDatabase
-import com.example.leofindit.model.BtleDevice
-import com.example.leofindit.model.DeviceScanner
-import com.example.leofindit.model.toEntity
+import com.example.leofindit.deviceScanner.data.DeviceScanner
+import com.example.leofindit.deviceScanner.domain.BtleDevice
+import com.example.leofindit.deviceScanner.data.database.AppDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlin.collections.find
-import kotlin.collections.map
 
 //view model to store scanned device list and scanning logic
 class BtleViewModel(application: Application) : AndroidViewModel(application) {
@@ -68,6 +62,9 @@ class BtleViewModel(application: Application) : AndroidViewModel(application) {
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     fun isScanning(): Boolean {
         return deviceScanner.getScanState()
+    }
+    fun interrogateDevice(address: String) {
+        deviceScanner.interrogateDevice(address)
     }
 
     // Update a device state safely using copy()
