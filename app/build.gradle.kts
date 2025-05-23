@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("com.google.devtools.ksp")
     alias(libs.plugins.compose.compiler)
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 android {
@@ -62,7 +63,15 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 dependencies {
-
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation("androidx.datastore:datastore-preferences-rxjava2:1.1.7")
+    implementation("androidx.datastore:datastore-preferences-rxjava3:1.1.7")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("io.insert-koin:koin-core:4.0.3")
+    implementation("io.insert-koin:koin-android:4.0.3")
+    implementation("io.insert-koin:koin-compose:4.0.3")
+    implementation("io.insert-koin:koin-compose-viewmodel:4.0.3")
+    implementation("io.insert-koin:koin-compose-viewmodel-navigation:4.0.3")
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.core.ktx)
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")

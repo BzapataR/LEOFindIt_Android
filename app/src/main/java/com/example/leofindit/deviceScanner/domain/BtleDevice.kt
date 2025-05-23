@@ -11,9 +11,9 @@ data class BtleDevice(
     var signalStrength: Int?,
     val isParent: Boolean = false,
     var isTarget: Boolean = false,
-    private var isSuspicious: Boolean? = null, //True = sus, False = safe, null = neutral
+    var isSuspicious: Boolean? = null, //True = sus, False = safe, null = neutral
     val isTag: Boolean = false,
-    private var nickName: String? = null,
+    var nickName: String? = null,
     val timeStamp: Long,
     var deviceUuid: List<String>,
 

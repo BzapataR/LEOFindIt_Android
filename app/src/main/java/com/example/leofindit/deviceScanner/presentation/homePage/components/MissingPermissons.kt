@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.HomePage.components
+package com.example.leofindit.deviceScanner.presentation.homePage.components
 
 import android.Manifest
 import androidx.annotation.RequiresPermission

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 //view model to store scanned device list and scanning logic
-class BtleViewModel(application: Application) : AndroidViewModel(application) {
+class ScanningViewModel(application: Application) : AndroidViewModel(application) {
     private val _scannedDevices = MutableStateFlow<List<BtleDevice>>(emptyList())
     val scannedDevices: StateFlow<List<BtleDevice>> = _scannedDevices
 

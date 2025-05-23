@@ -70,7 +70,7 @@ import com.example.leofindit.ui.theme.LeoFindItTheme
 import com.example.leofindit.ui.theme.OnSurface
 import com.example.leofindit.ui.theme.Purple40
 import com.example.leofindit.viewModels.BtleDbViewModel
-import com.example.leofindit.viewModels.BtleViewModel
+import com.example.leofindit.viewModels.ScanningViewModel
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
@@ -81,7 +81,7 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun TrackerDetails(
     navController: NavController? = null,
-    viewModel: BtleViewModel,
+    viewModel: ScanningViewModel,
     address: String,
     dbViewModel: BtleDbViewModel,
 ) {

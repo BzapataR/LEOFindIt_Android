@@ -48,7 +48,7 @@ import com.example.leofindit.R
 import com.example.leofindit.deviceScanner.presentation.universalComponents.RoundedListItem
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.LeoFindItTheme
-import com.example.leofindit.viewModels.BtleViewModel
+import com.example.leofindit.viewModels.ScanningViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.floor
@@ -57,7 +57,7 @@ import kotlin.math.floor
 @SuppressLint("RestrictedApi")
 @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
 @Composable
-fun PrecisionFinding(navController: NavController? = null, address: String, viewModel: BtleViewModel) {
+fun PrecisionFinding(navController: NavController? = null, address: String, viewModel: ScanningViewModel) {
     // Pause scanning to save resources and battery
     val context = LocalContext.current
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE){viewModel.stopScanning()}

@@ -3,7 +3,7 @@
 //  LeoFindIt
 //
 //  Created by Brian Zapata Resendiz
-package com.example.leofindit.deviceScanner.presentation.HomePage
+package com.example.leofindit.deviceScanner.presentation.homePage
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -44,14 +44,16 @@ import com.example.leofindit.controller.BtHelper
 import com.example.leofindit.controller.LocationHelper
 import com.example.leofindit.R
 import com.example.leofindit.deviceScanner.presentation.universalComponents.DeviceListEntry
-import com.example.leofindit.deviceScanner.presentation.HomePage.components.MissingPermissons
-import com.example.leofindit.deviceScanner.presentation.HomePage.components.Scanning
+import com.example.leofindit.deviceScanner.presentation.homePage.components.MissingPermissons
+import com.example.leofindit.deviceScanner.presentation.homePage.components.Scanning
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.InversePrimary
 import com.example.leofindit.ui.theme.LeoFindItTheme
-import com.example.leofindit.viewModels.BtleViewModel
+import com.example.leofindit.viewModels.ScanningViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import androidx.compose.runtime.getValue
+import com.example.leofindit.deviceScanner.domain.BtleDevice
+import com.example.leofindit.viewModels.SelectedDeviceViewModel
 
 // change text in 6 seconds
 @SuppressLint("StateFlowValueCalledInComposition", "SupportAnnotationUsage", "MissingPermission")
@@ -62,7 +64,8 @@ import androidx.compose.runtime.getValue
 @Composable
 fun ManualScanning(
     navController : NavController? = null,
-    viewModel: BtleViewModel
+    viewModel: ScanningViewModel,
+    selectedDeviceViewModel: SelectedDeviceViewModel
 
 ) {
     // will scan if device is suspended in background code below stops that
@@ -224,4 +227,8 @@ fun ManualScanningPreview() {
             )
         }
     }
+}
+
+sealed interface Actions {
+    data class OnDeviceClick(val device : BtleDevice)
 }
