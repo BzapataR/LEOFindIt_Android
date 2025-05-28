@@ -69,408 +69,406 @@ import com.example.leofindit.ui.theme.GoldPrimaryDull
 import com.example.leofindit.ui.theme.LeoFindItTheme
 import com.example.leofindit.ui.theme.OnSurface
 import com.example.leofindit.ui.theme.Purple40
-import com.example.leofindit.viewModels.BtleDbViewModel
-import com.example.leofindit.viewModels.ScanningViewModel
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
 
-@SuppressLint("DefaultLocale")
-@OptIn(ExperimentalMaterial3Api::class)
-@RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
-@Composable
-fun TrackerDetails(
-    navController: NavController? = null,
-    viewModel: ScanningViewModel,
-    address: String,
-    dbViewModel: BtleDbViewModel,
-) {
-    var device by remember { mutableStateOf(viewModel.findDevice(address)) }
-
-    LaunchedEffect(device.deviceAddress) {
-        device = viewModel.insertOrUpdateAndSync(device, database = dbViewModel.getDatabase())
-        Log.i("Composable Device", "$device")
-    }
-
-    var ignoreTracker by remember { mutableStateOf(viewModel.isDeviceMarked(device)) }
-    var showDialog by remember { mutableStateOf(false) }
-    var nickname by remember { mutableStateOf(device.getNickName() ?: "") }
-// Time vars
-    var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            currentTime = System.currentTimeMillis()
-            delay(1000)
-        }
-    }
-    val deviceTimeStamp = rememberUpdatedState(newValue = device.timeStamp)
-    val timeDiffMillis = currentTime - deviceTimeStamp.value
-    val hours = TimeUnit.MILLISECONDS.toHours(timeDiffMillis)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(timeDiffMillis) - TimeUnit.HOURS.toMinutes(hours)
-    val seconds =
-        TimeUnit.MILLISECONDS.toSeconds(timeDiffMillis) - TimeUnit.MINUTES.toSeconds(minutes)
-    val formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds)
-// todo remove this or implement a version using a device variable
-    val notCurrentlyReachable = false
-// context vars
-    val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
-    //todo make a database of manufactures with their website to remove/disable device
-    val webIntent = Intent(
-        Intent.ACTION_VIEW,
-        "https://www.deccanherald.com/technology/gadgets/how-to-detect-and-disable-illegal-bluetooth-trackers-on-android-phones-3323302".toUri()
-       // "https://support.thetileapp.com/hc/en-us/articles/360037001854-Disconnect-a-Partner-Device-from-My-Tile-Account#:~:text=During%20this%20process%2C%20the%20device,back%20to%20your%20Tile%20account.".toUri()
-    )
-// device marking vars
-    var selectedIndex by remember { mutableIntStateOf(-1) }
-
-    LaunchedEffect(device) {
-        selectedIndex = when (device.getIsSuspicious()) {
-            null -> -1
-            false -> 0
-            true -> 1
-        }
-    }
-
-
-
-    LazyColumn {
-        item {
-            Spacer(modifier = Modifier.size(56.dp))
-            //********************************************************************************
-            //                    Device Name, Last Seen, and Safe/Sus Button
-            //********************************************************************************
-
-            IconButton(onClick = { navController?.popBackStack() }) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.baseline_arrow_back_24),
-                    contentDescription = "Back Button",
-                    tint = GoldPrimary
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = device.deviceName,
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1
-                )
-                TextButton(onClick ={viewModel.interrogateDevice(address)}) {
-                    Text(text = "Interrogate", color = Color.LightGray)
-                }
-            }
-            // Connection status and last seen time
-            val connectionStatus = true
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                if (notCurrentlyReachable == true) {
-                    BasicText(
-                        text = "No Connection",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                } else {
-                    //todo start scan at start and search scanned list for current device address
-                    if (connectionStatus == null) {
-                        Text(
-                            text = "connectionStatus.description",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-
-                //Last seen
-                Text(
-                    text = "Last seen: $formattedTime",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = GoldPrimaryDull,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier
-                        .width(270.dp)
-                        .align(Alignment.CenterHorizontally)
-                ) {
-                    val options = listOf("Mark Safe", "Mark Suspicious")
-                    options.forEachIndexed { index, label ->
-                        var isSelected = index == selectedIndex
-                        val backgroundColor = if (index == 0) Color.LightGray else Color.Black
-                        val containerColor = if (index == 0) Color.Black else Color.LightGray
-                        val inactiveBackgroundColor =
-                            if (index == 0) Color.LightGray else Color.Black
-                        val inactiveContentColor = if (index == 0) Color.Black else Color.LightGray
-
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = options.size
-                            ),
-                            onClick = {
-                                // Toggle selection
-                                selectedIndex = if (isSelected) -1 else index
-
-                                when (selectedIndex) {
-                                    // Neutral (null) state: delete device
-                                    -1 -> {
-                                        device = viewModel.updateDeviceState(address, null) // Set state to null (neutral)
-                                        dbViewModel.deleteDevice(device)
-                                        ignoreTracker = true
-                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to neutral")
-                                    }
-
-                                    // Mark Safe: set isSuspicious to false (0)
-                                    0 -> {
-                                        device = viewModel.updateDeviceState(address, isSuspicious = false)
-                                        dbViewModel.addDevice(device)
-                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to safe")
-                                    }
-
-                                    // Mark Suspicious: set isSuspicious to true (1)
-                                    1 -> {
-                                        device = viewModel.updateDeviceState(address, isSuspicious = true)
-                                        dbViewModel.addDevice(device)
-                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to suspicious")
-                                    }
-                                }
-
-                                Log.i(
-                                    "Updated Device Call",
-                                    "Device: ${device.deviceAddress} is suspicious: ${device.getIsSuspicious()}"
-                                )
-                            },
-                            selected = index == selectedIndex,
-                            enabled = true,
-                            colors = SegmentedButtonDefaults.colors(
-                                activeContainerColor = backgroundColor,
-                                activeContentColor = containerColor,
-                                inactiveContainerColor = inactiveBackgroundColor,
-                                inactiveContentColor = inactiveContentColor,
-                            ),
-                        ) {
-                            Text(label)
-                        }
-                    }
-                }
-
-                //********************************************************************************
-                //                       Device Address, Manufacturer, and Type
-                //********************************************************************************
-                Card(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .shadow(elevation = 24.dp),
-                ) {
-                    RoundedListItem(
-                        leadingText = "Device Address",
-                        trailingText = device.deviceAddress ?: "Unknown",
-                        trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
-                        onClick = {
-                            clipboardManager.setText(AnnotatedString(device.deviceAddress.toString()))
-                            Toast.makeText(
-                                context,
-                                "Device address copied",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    )
-                    RoundedListItem(
-                        leadingText = "Manufacturer",
-                        trailingText = device.deviceManufacturer,
-                        trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
-                        onClick = {
-                            clipboardManager.setText(AnnotatedString(device.deviceManufacturer.toString()))
-                            Toast.makeText(
-                                context,
-                                "Device manufacturer copied",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    )
-                    RoundedListItem(
-                        leadingText = "Device type",
-                        trailingText = device.deviceType,
-                        trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
-                        onClick = {
-                            clipboardManager.setText(AnnotatedString(device.deviceType.toString()))
-                            Toast.makeText(
-                                context,
-                                "Device Type copied",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    )
-
-                }
-
-                //********************************************************************************
-                //                    Locate tracker, ignore tracker, nickname
-                //********************************************************************************
-                Card(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .shadow(elevation = 24.dp),
-                ) {
-                    // list of options
-                    RoundedListItem(
-                        onClick = {
-                            //crashed on precision finding due to selecting this and device not found
-                            //find device on click here and make fail safe.
-                            viewModel.startScanning(address)
-                            try {
-                                viewModel.findDevice(address)
-                            } catch (_: NoSuchElementException) {
-                                null
-                            }
-                            if (device == null) {
-                                Toast.makeText(
-                                    context,
-                                    "Device is out of range",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                navController?.navigate("Manual Scan") {
-                                    popUpTo(0) { inclusive = true } // This clears back stack
-                                }
-                            }
-                            navController?.navigate(route = "Precision Finding/${address}")
-                        },
-                        color = Color(0xff007aff),
-                        icon = ImageVector.vectorResource(R.drawable.outline_explore_24),
-                        leadingText = "Locate Tracker", trailingText = "Nearby"
-                    )
-
+//@SuppressLint("DefaultLocale")
+//@OptIn(ExperimentalMaterial3Api::class)
+//@RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
+//@Composable
+//fun TrackerDetails(
+//    navController: NavController? = null,
+//    viewModel: ScanningViewModel,
+//    address: String,
+//    dbViewModel: BtleDbViewModel,
+//) {
+//    var device by remember { mutableStateOf(viewModel.findDevice(address)) }
+//
+//    LaunchedEffect(device.deviceAddress) {
+//        device = viewModel.insertOrUpdateAndSync(device, database = dbViewModel.getDatabase())
+//        Log.i("Composable Device", "$device")
+//    }
+//
+//    var ignoreTracker by remember { mutableStateOf(viewModel.isDeviceMarked(device)) }
+//    var showDialog by remember { mutableStateOf(false) }
+//    var nickname by remember { mutableStateOf(device.getNickName() ?: "") }
+//// Time vars
+//    var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+//
+//    LaunchedEffect(Unit) {
+//        while (true) {
+//            currentTime = System.currentTimeMillis()
+//            delay(1000)
+//        }
+//    }
+//    val deviceTimeStamp = rememberUpdatedState(newValue = device.timeStamp)
+//    val timeDiffMillis = currentTime - deviceTimeStamp.value
+//    val hours = TimeUnit.MILLISECONDS.toHours(timeDiffMillis)
+//    val minutes = TimeUnit.MILLISECONDS.toMinutes(timeDiffMillis) - TimeUnit.HOURS.toMinutes(hours)
+//    val seconds =
+//        TimeUnit.MILLISECONDS.toSeconds(timeDiffMillis) - TimeUnit.MINUTES.toSeconds(minutes)
+//    val formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+//// todo remove this or implement a version using a device variable
+//    val notCurrentlyReachable = false
+//// context vars
+//    val context = LocalContext.current
+//    val clipboardManager = LocalClipboardManager.current
+//    //todo make a database of manufactures with their website to remove/disable device
+//    val webIntent = Intent(
+//        Intent.ACTION_VIEW,
+//        "https://www.deccanherald.com/technology/gadgets/how-to-detect-and-disable-illegal-bluetooth-trackers-on-android-phones-3323302".toUri()
+//       // "https://support.thetileapp.com/hc/en-us/articles/360037001854-Disconnect-a-Partner-Device-from-My-Tile-Account#:~:text=During%20this%20process%2C%20the%20device,back%20to%20your%20Tile%20account.".toUri()
+//    )
+//// device marking vars
+//    var selectedIndex by remember { mutableIntStateOf(-1) }
+//
+//    LaunchedEffect(device) {
+//        selectedIndex = when (device.getIsSuspicious()) {
+//            null -> -1
+//            false -> 0
+//            true -> 1
+//        }
+//    }
+//
+//
+//
+//    LazyColumn {
+//        item {
+//            Spacer(modifier = Modifier.size(56.dp))
+//            //********************************************************************************
+//            //                    Device Name, Last Seen, and Safe/Sus Button
+//            //********************************************************************************
+//
+//            IconButton(onClick = { navController?.popBackStack() }) {
+//                Icon(
+//                    imageVector = ImageVector.vectorResource(R.drawable.baseline_arrow_back_24),
+//                    contentDescription = "Back Button",
+//                    tint = GoldPrimary
+//                )
+//            }
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(start = 16.dp, end = 16.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text(
+//                    text = device.deviceName,
+//                    style = MaterialTheme.typography.headlineLarge.copy(
+//                        fontWeight = FontWeight.Bold
+//                    ),
+//                    modifier = Modifier.weight(1f),
+//                    maxLines = 1
+//                )
+//                TextButton(onClick ={viewModel.interrogateDevice(address)}) {
+//                    Text(text = "Interrogate", color = Color.LightGray)
+//                }
+//            }
+//            // Connection status and last seen time
+//            val connectionStatus = true
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp),
+//                verticalArrangement = Arrangement.spacedBy(16.dp)
+//            ) {
+//                if (notCurrentlyReachable == true) {
+//                    BasicText(
+//                        text = "No Connection",
+//                        style = MaterialTheme.typography.bodyLarge.copy(
+//                            fontWeight = FontWeight.Bold,
+//                            color = MaterialTheme.colorScheme.primary
+//                        ),
+//                        modifier = Modifier.fillMaxWidth()
+//                    )
+//                } else {
+//                    //todo start scan at start and search scanned list for current device address
+//                    if (connectionStatus == null) {
+//                        Text(
+//                            text = "connectionStatus.description",
+//                            style = MaterialTheme.typography.bodyLarge.copy(
+//                                fontWeight = FontWeight.Bold
+//                            ),
+//                            modifier = Modifier.fillMaxWidth()
+//                        )
+//                    }
+//                }
+//
+//                //Last seen
+//                Text(
+//                    text = "Last seen: $formattedTime",
+//                    style = MaterialTheme.typography.bodyLarge,
+//                    fontWeight = FontWeight.Bold,
+//                    color = GoldPrimaryDull,
+//                    modifier = Modifier.fillMaxWidth()
+//                )
+//                SingleChoiceSegmentedButtonRow(
+//                    modifier = Modifier
+//                        .width(270.dp)
+//                        .align(Alignment.CenterHorizontally)
+//                ) {
+//                    val options = listOf("Mark Safe", "Mark Suspicious")
+//                    options.forEachIndexed { index, label ->
+//                        var isSelected = index == selectedIndex
+//                        val backgroundColor = if (index == 0) Color.LightGray else Color.Black
+//                        val containerColor = if (index == 0) Color.Black else Color.LightGray
+//                        val inactiveBackgroundColor =
+//                            if (index == 0) Color.LightGray else Color.Black
+//                        val inactiveContentColor = if (index == 0) Color.Black else Color.LightGray
+//
+//                        SegmentedButton(
+//                            shape = SegmentedButtonDefaults.itemShape(
+//                                index = index,
+//                                count = options.size
+//                            ),
+//                            onClick = {
+//                                // Toggle selection
+//                                selectedIndex = if (isSelected) -1 else index
+//
+//                                when (selectedIndex) {
+//                                    // Neutral (null) state: delete device
+//                                    -1 -> {
+//                                        device = viewModel.updateDeviceState(address, null) // Set state to null (neutral)
+//                                        dbViewModel.deleteDevice(device)
+//                                        ignoreTracker = true
+//                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to neutral")
+//                                    }
+//
+//                                    // Mark Safe: set isSuspicious to false (0)
+//                                    0 -> {
+//                                        device = viewModel.updateDeviceState(address, isSuspicious = false)
+//                                        dbViewModel.addDevice(device)
+//                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to safe")
+//                                    }
+//
+//                                    // Mark Suspicious: set isSuspicious to true (1)
+//                                    1 -> {
+//                                        device = viewModel.updateDeviceState(address, isSuspicious = true)
+//                                        dbViewModel.addDevice(device)
+//                                        Log.i("Update Device Call", "Index is: $selectedIndex Device set to suspicious")
+//                                    }
+//                                }
+//
+//                                Log.i(
+//                                    "Updated Device Call",
+//                                    "Device: ${device.deviceAddress} is suspicious: ${device.getIsSuspicious()}"
+//                                )
+//                            },
+//                            selected = index == selectedIndex,
+//                            enabled = true,
+//                            colors = SegmentedButtonDefaults.colors(
+//                                activeContainerColor = backgroundColor,
+//                                activeContentColor = containerColor,
+//                                inactiveContainerColor = inactiveBackgroundColor,
+//                                inactiveContentColor = inactiveContentColor,
+//                            ),
+//                        ) {
+//                            Text(label)
+//                        }
+//                    }
+//                }
+//
+//                //********************************************************************************
+//                //                       Device Address, Manufacturer, and Type
+//                //********************************************************************************
+//                Card(
+//                    modifier = Modifier
+//                        .padding(horizontal = 4.dp)
+//                        .shadow(elevation = 24.dp),
+//                ) {
+//                    RoundedListItem(
+//                        leadingText = "Device Address",
+//                        trailingText = device.deviceAddress ?: "Unknown",
+//                        trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
+//                        onClick = {
+//                            clipboardManager.setText(AnnotatedString(device.deviceAddress.toString()))
+//                            Toast.makeText(
+//                                context,
+//                                "Device address copied",
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        }
+//                    )
+//                    RoundedListItem(
+//                        leadingText = "Manufacturer",
+//                        trailingText = device.deviceManufacturer,
+//                        trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
+//                        onClick = {
+//                            clipboardManager.setText(AnnotatedString(device.deviceManufacturer.toString()))
+//                            Toast.makeText(
+//                                context,
+//                                "Device manufacturer copied",
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        }
+//                    )
+//                    RoundedListItem(
+//                        leadingText = "Device type",
+//                        trailingText = device.deviceType,
+//                        trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
+//                        onClick = {
+//                            clipboardManager.setText(AnnotatedString(device.deviceType.toString()))
+//                            Toast.makeText(
+//                                context,
+//                                "Device Type copied",
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        }
+//                    )
+//
+//                }
+//
+//                //********************************************************************************
+//                //                    Locate tracker, ignore tracker, nickname
+//                //********************************************************************************
+//                Card(
+//                    modifier = Modifier
+//                        .padding(horizontal = 4.dp)
+//                        .shadow(elevation = 24.dp),
+//                ) {
+//                    // list of options
+//                    RoundedListItem(
+//                        onClick = {
+//                            //crashed on precision finding due to selecting this and device not found
+//                            //find device on click here and make fail safe.
+//                            viewModel.startScanning(address)
+//                            try {
+//                                viewModel.findDevice(address)
+//                            } catch (_: NoSuchElementException) {
+//                                null
+//                            }
+//                            if (device == null) {
+//                                Toast.makeText(
+//                                    context,
+//                                    "Device is out of range",
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+//                                navController?.navigate("Manual Scan") {
+//                                    popUpTo(0) { inclusive = true } // This clears back stack
+//                                }
+//                            }
+//                            navController?.navigate(route = "Precision Finding/${address}")
+//                        },
+//                        color = Color(0xff007aff),
+//                        icon = ImageVector.vectorResource(R.drawable.outline_explore_24),
+//                        leadingText = "Locate Tracker", trailingText = "Nearby"
+//                    )
+//
+////                    HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
+////
+////                    RoundedListItem( //todo if map added add within here
+////                        onClick = { navController?.navigate("Observe Tracker") },
+////                        color = colorResource(R.color.purple_200),
+////                        icon = ImageVector.vectorResource(R.drawable.outline_access_time_24),
+////                        leadingText = "Observe Tracker", trailingText = "Off"
+////                    )
+//
 //                    HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
 //
-//                    RoundedListItem( //todo if map added add within here
-//                        onClick = { navController?.navigate("Observe Tracker") },
-//                        color = colorResource(R.color.purple_200),
-//                        icon = ImageVector.vectorResource(R.drawable.outline_access_time_24),
-//                        leadingText = "Observe Tracker", trailingText = "Off"
+//                    RoundedListItem(
+//                        color = Color.Red,
+//                        icon = ImageVector.vectorResource(R.drawable.outline_not_interested_24),
+//                        leadingText = "Ignore Tracker",
+//                        customTrailingContent = {
+//                            Switch(
+//                                colors = SwitchDefaults.colors(checkedTrackColor = GoldPrimary),
+//                                checked = selectedIndex == -1,
+//                                onCheckedChange = { isChecked ->
+//                                    viewModel.updateDeviceState(
+//                                        isSuspicious = null,
+//                                        address = address
+//                                    )
+//                                    selectedIndex = -1
+//                                },
+//                            )
+//                        }
 //                    )
-
-                    HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
-
-                    RoundedListItem(
-                        color = Color.Red,
-                        icon = ImageVector.vectorResource(R.drawable.outline_not_interested_24),
-                        leadingText = "Ignore Tracker",
-                        customTrailingContent = {
-                            Switch(
-                                colors = SwitchDefaults.colors(checkedTrackColor = GoldPrimary),
-                                checked = selectedIndex == -1,
-                                onCheckedChange = { isChecked ->
-                                    viewModel.updateDeviceState(
-                                        isSuspicious = null,
-                                        address = address
-                                    )
-                                    selectedIndex = -1
-                                },
-                            )
-                        }
-                    )
-
-                    HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
-
-                    RoundedListItem(
-                        color = Color.Yellow,
-                        icon = Icons.Filled.Create,
-                        leadingText = "Create Nickname",
-                        trailingText = "Set Nickname",
-                        onClick = {
-                            showDialog = true
-                        }
-                    )
-                }
-                //
-                Text(
-                    text = "Ignoring trackers will stop notifications in the background",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = OnSurface.copy(alpha = 0.6f)
-                )
-                //********************************************************************************
-                //                    Manufacturer website
-                //********************************************************************************
-                Card(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .shadow(elevation = 16.dp),
-                ) {
-                    // get database going with from device manufacturer and link with a website
-                    // Right now shows generic website to disable device
-                    RoundedListItem(
-                        onClick = { context.startActivity(webIntent) },
-                        icon = ImageVector.vectorResource(R.drawable.outline_info_24),
-                        color = Color.Green,
-                        leadingText = "Manufacture's Website",
-                        trailingIcon = ImageVector.vectorResource(R.drawable.baseline_link_24),
-                        iconModifier = Modifier.rotate(-45F)
-                    )
-                }
-
-                Text(
-                    text = " Learn more, e.g how to disable the tracker",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = OnSurface.copy(alpha = 0.6f)
-                )
-            }
-        }
-    }
-    //********************************************************************************
-    //                    Nickname dialog Logic
-    //********************************************************************************
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = {
-                Text("Set Nickname", style = MaterialTheme.typography.titleLarge)
-            },
-            text = {
-                OutlinedTextField(
-                    value = nickname.toString(),
-                    onValueChange = { nickname = it },
-                    placeholder = { Text("Enter nickname") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.setNickName(address, nickname)
-                        showDialog = false
-                        Toast.makeText(context, "Nickname set!", Toast.LENGTH_SHORT).show()
-                    }
-                ) {
-                    Text("Save")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-
-}
+//
+//                    HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
+//
+//                    RoundedListItem(
+//                        color = Color.Yellow,
+//                        icon = Icons.Filled.Create,
+//                        leadingText = "Create Nickname",
+//                        trailingText = "Set Nickname",
+//                        onClick = {
+//                            showDialog = true
+//                        }
+//                    )
+//                }
+//                //
+//                Text(
+//                    text = "Ignoring trackers will stop notifications in the background",
+//                    style = MaterialTheme.typography.bodySmall,
+//                    color = OnSurface.copy(alpha = 0.6f)
+//                )
+//                //********************************************************************************
+//                //                    Manufacturer website
+//                //********************************************************************************
+//                Card(
+//                    modifier = Modifier
+//                        .padding(horizontal = 4.dp)
+//                        .shadow(elevation = 16.dp),
+//                ) {
+//                    // get database going with from device manufacturer and link with a website
+//                    // Right now shows generic website to disable device
+//                    RoundedListItem(
+//                        onClick = { context.startActivity(webIntent) },
+//                        icon = ImageVector.vectorResource(R.drawable.outline_info_24),
+//                        color = Color.Green,
+//                        leadingText = "Manufacture's Website",
+//                        trailingIcon = ImageVector.vectorResource(R.drawable.baseline_link_24),
+//                        iconModifier = Modifier.rotate(-45F)
+//                    )
+//                }
+//
+//                Text(
+//                    text = " Learn more, e.g how to disable the tracker",
+//                    style = MaterialTheme.typography.bodySmall,
+//                    color = OnSurface.copy(alpha = 0.6f)
+//                )
+//            }
+//        }
+//    }
+//    //********************************************************************************
+//    //                    Nickname dialog Logic
+//    //********************************************************************************
+//    if (showDialog) {
+//        AlertDialog(
+//            onDismissRequest = { showDialog = false },
+//            title = {
+//                Text("Set Nickname", style = MaterialTheme.typography.titleLarge)
+//            },
+//            text = {
+//                OutlinedTextField(
+//                    value = nickname.toString(),
+//                    onValueChange = { nickname = it },
+//                    placeholder = { Text("Enter nickname") },
+//                    singleLine = true,
+//                    modifier = Modifier.fillMaxWidth()
+//                )
+//            },
+//            confirmButton = {
+//                TextButton(
+//                    onClick = {
+//                        viewModel.setNickName(address, nickname)
+//                        showDialog = false
+//                        Toast.makeText(context, "Nickname set!", Toast.LENGTH_SHORT).show()
+//                    }
+//                ) {
+//                    Text("Save")
+//                }
+//            },
+//            dismissButton = {
+//                TextButton(onClick = { showDialog = false }) {
+//                    Text("Cancel")
+//                }
+//            }
+//        )
+//    }
+//
+//}
 
 //********************************************************************************
 //                                      Preview
@@ -497,7 +495,7 @@ fun TrackerDetailsPreview() {
     LeoFindItTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = Background) {
             val device = sampleBtleDevice
-            var nickname by remember { mutableStateOf(device.getNickName() ?: "") }
+            var nickname by remember { mutableStateOf(device.nickName ?: "") }
             var selectedIndex by remember { mutableIntStateOf(-1) }
             val timeStamp = device.timeStamp
 

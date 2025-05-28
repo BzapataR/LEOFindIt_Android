@@ -29,6 +29,7 @@ import androidx.navigation.NavController
 import com.example.leofindit.controller.BtHelper
 import com.example.leofindit.controller.LocationHelper
 import com.example.leofindit.R
+import com.example.leofindit.deviceScanner.presentation.homePage.HomePageState
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.LeoFindItTheme
 import com.example.leofindit.ui.theme.OnPrimary
@@ -36,14 +37,13 @@ import com.example.leofindit.ui.theme.OnSurface
 import com.example.leofindit.ui.theme.Surface
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
-@RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 /*********************************************************************************
 *                   Page auto triggers when Bt service, Location service
 *                   Bt permission or Location permission is disabled
 *********************************************************************************/
-fun MissingPermissons(navController: NavController? = null) {
+fun MissingPermissions(navController: NavController? = null, stateError : String) {
     // getting the permissions
     val btPermissions = BtHelper.rememberPermissions()
     val locationPermissions = LocationHelper.rememberLocationPermissionState()
@@ -70,9 +70,7 @@ fun MissingPermissons(navController: NavController? = null) {
         )
         Text(
             color = GoldPrimary,
-            text = if (!btSet && !isLocationSet) "Multiple Errors"
-            else if (!btSet) "Bluetooth Errors"
-            else "Location Errors",
+            text = stateError,
             style = MaterialTheme.typography.titleLarge
         )
         Text(
@@ -162,7 +160,7 @@ fun MissingPermissons(navController: NavController? = null) {
 fun BluetoothOffPreview() {
     LeoFindItTheme {
         Surface (modifier = Modifier.fillMaxSize()) {
-            MissingPermissons()
+            MissingPermissions(stateError = "")
         }
     }
 }

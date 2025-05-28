@@ -1,12 +1,13 @@
 package com.example.leofindit.deviceScanner.domain
 
 import com.example.leofindit.errors.DataError
+import com.example.leofindit.errors.EmptyResult
 import com.example.leofindit.errors.Result
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 
 interface DataRepository {
-    suspend fun scannedDevices() : Flow<Result<List<BtleDevice>, DataError.DbError>>
+    fun startScanning() : Result<Flow<List<BtleDevice>>, DataError.ScanningError>
+    fun stopScanning() : EmptyResult<DataError.ScanningError>
     suspend fun getDataBaseDevices() : Flow<List<BtleDevice>>
     suspend fun getWhiteList() : Flow<List<BtleDevice>>
     suspend fun getBlackList() : Flow<List<BtleDevice>>
@@ -14,7 +15,8 @@ interface DataRepository {
     suspend fun updateDevice(device: BtleDevice)
     suspend fun deleteDevice(device: BtleDevice)
     suspend fun deleteAllDevices()
-    suspend fun getDeviceByAddress(address : String): BtleDevice?
+    fun getDeviceByAddress(address : String): Flow<BtleDevice?>
+    suspend fun editNickName(address: String, newNickName : String): EmptyResult<DataError.DbError>
     //fun trackDevice()
 
 

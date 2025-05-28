@@ -88,7 +88,6 @@ object BtHelper {
         return bluetoothAdapter?.isEnabled == true
     }
 
-    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun turnOnBtService (context : Context) {
         val requestBluetoothService = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
         context.startActivity(requestBluetoothService,)

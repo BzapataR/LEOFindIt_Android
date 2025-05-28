@@ -24,7 +24,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.example.leofindit.R
 import com.example.leofindit.deviceScanner.presentation.universalComponents.RoundedListItem
 import com.example.leofindit.ui.theme.GoldPrimary
@@ -35,21 +34,18 @@ import com.example.leofindit.ui.theme.LeoFindItTheme
 //
 //********************************************************************************
 @Composable
-fun Settings(navController: NavController? = null) {
+fun Settings(goBack: () -> Unit = {}, toAppInfo : () -> Unit = {}, toSavedDevices: () -> Unit = {}) {
     LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         //verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         item {
-            Spacer(modifier = Modifier.size(56.dp))
-
-
             // Title and close button row
             Box(modifier = Modifier.fillMaxWidth().padding(start = 12.dp), contentAlignment = Alignment.Center) {
 
                 IconButton(
-                    onClick = { navController?.popBackStack() },
+                    onClick = { goBack() },
                     colors = IconButtonDefaults.iconButtonColors(contentColor = GoldPrimary),
                     modifier = Modifier.align(alignment = Alignment.CenterStart)
                 ) {
@@ -74,13 +70,13 @@ fun Settings(navController: NavController? = null) {
                     .shadow(elevation = 24.dp),
             ) {
                 RoundedListItem(
-                    onClick = { navController?.navigate("App Info") },
+                    onClick = { toAppInfo() },
                     icon = ImageVector.vectorResource(R.drawable.outline_info_24),
                     color = Color.Green,
                     leadingText = "Information & Contact"
                 )
                 RoundedListItem(
-                    onClick = { navController?.navigate("Marked Devices") },
+                    onClick = { toSavedDevices() },
                     icon = ImageVector.vectorResource(R.drawable.baseline_list_24),
                     color = Color.Gray,
                     leadingText = "Marked Device",

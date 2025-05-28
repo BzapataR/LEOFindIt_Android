@@ -32,7 +32,7 @@ import com.example.leofindit.ui.theme.Surface
 //                    Scanning Home page
 //********************************************************************************
 @Composable
-fun DeviceListEntry(navController: NavController? = null, device : BtleDevice) {
+fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice) {
     val address = device.deviceAddress
     Card(
         modifier = Modifier.size(width = 360.dp, height = 40.dp),
@@ -40,7 +40,7 @@ fun DeviceListEntry(navController: NavController? = null, device : BtleDevice) {
             containerColor = Surface
         ),
         onClick = {
-            navController?.navigate(route ="Tracker Details/$address")
+            onListItemClick
         }
     ) {
         Row(
@@ -165,8 +165,8 @@ fun DeviceDetailEntryPreview() {
     Column(
         Modifier.padding(12.dp)
     ) {
-        DeviceListEntry(device = device1)
-        DeviceListEntry(device = device2)
-        DeviceListEntry(device = device3)
+        DeviceListEntry(device = device1, onListItemClick = {})
+        DeviceListEntry(device = device2, onListItemClick = {})
+        DeviceListEntry(device = device3, onListItemClick = {})
     }
 }

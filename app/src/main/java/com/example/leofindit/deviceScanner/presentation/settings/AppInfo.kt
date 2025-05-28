@@ -31,7 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.navigation.NavController
 import com.example.leofindit.R
 import com.example.leofindit.deviceScanner.presentation.universalComponents.RoundedListItem
 import com.example.leofindit.ui.theme.GoldPrimary
@@ -39,7 +38,7 @@ import com.example.leofindit.ui.theme.LeoFindItTheme
 
 @SuppressLint("QueryPermissionsNeeded")
 @Composable
-fun AppInfo(navController: NavController? = null) {
+fun AppInfo(goBack: () -> Unit = {} ) {
     val context = LocalContext.current
     val emailAddress = "leofindit@gmail.com" //example
     val subject = "Feedback; Version 1.0.0"
@@ -50,11 +49,10 @@ fun AppInfo(navController: NavController? = null) {
     val brianGitHub = Intent(Intent.ACTION_VIEW, "https://github.com/BzapataR".toUri())
     val jeremyGitHub = Intent(Intent.ACTION_VIEW, "https://github.com/JeremyClarkFGCU".toUri())
 
-    Column {
-        Spacer(modifier = Modifier.size(56.dp))
+    Column(modifier = Modifier.fillMaxSize()) {
         IconButton(
             colors = IconButtonDefaults.iconButtonColors(contentColor = GoldPrimary),
-            onClick = { navController?.popBackStack() }
+            onClick = { goBack() }
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.baseline_arrow_back_24),

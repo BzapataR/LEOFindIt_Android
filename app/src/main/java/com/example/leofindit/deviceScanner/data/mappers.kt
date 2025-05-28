@@ -10,8 +10,8 @@ fun BtleDevice.toEntity(): BTLEDeviceEntity {
         deviceManufacturer = this.deviceManufacturer,
         deviceName = this.deviceName,
         deviceType = this.deviceType,
-        isSuspicious = this.getIsSuspicious(),
-        deviceNickname = this.getNickName().toString(),
+        isSuspicious = this.isSuspicious,
+        deviceNickname = this.nickName.toString(),
         timestamp = listOf(this.timeStamp),
         UUID = this.deviceUuid,
         rssi = this.signalStrength ?: -999

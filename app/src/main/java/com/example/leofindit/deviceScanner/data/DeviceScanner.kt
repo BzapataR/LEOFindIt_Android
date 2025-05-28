@@ -9,16 +9,18 @@ import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
-import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
 import androidx.core.util.isNotEmpty
 import com.example.leofindit.deviceScanner.domain.BtleDevice
-import com.example.leofindit.errors.DataError
+import com.example.leofindit.errors.DataError.ScanningError
 import com.example.leofindit.errors.EmptyResult
 import com.example.leofindit.errors.Result
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 
 
 class DeviceScanner(private val context: Context) {
@@ -31,7 +33,6 @@ class DeviceScanner(private val context: Context) {
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
     private val bluetoothLeScanner: BluetoothLeScanner? = bluetoothAdapter?.bluetoothLeScanner
     private var isScanning = false
-    val list = mutableListOf<BtleDevice>()
     private val _scanResults = MutableStateFlow<MutableList<BtleDevice>>(mutableListOf())
     val scanResults : StateFlow<List<BtleDevice>> = _scanResults.asStateFlow()
     private var scanCallback: ((List<BtleDevice>) -> Unit)? = null
@@ -43,8 +44,22 @@ class DeviceScanner(private val context: Context) {
         isScanning = false
     }
 
-    fun setScanCallback(callback: (List<BtleDevice>) -> Unit) {
-        scanCallback = callback
+    fun mutateDeviceNickName(address : String, newNickName : String) {
+        _scanResults.update { currentMutableList ->
+            val newList = currentMutableList.map { device ->
+                if (device.deviceAddress == address) {
+                    device.copy(nickName = newNickName)
+                } else {
+                    device
+                }
+            }.toMutableList()
+            newList
+        }
+    }
+    fun findDeviceByAddress(address: String) : Flow<BtleDevice?> {
+        return scanResults.map {
+            it.firstOrNull{ it.deviceAddress == address}
+        }
     }
 
 
@@ -75,6 +90,8 @@ class DeviceScanner(private val context: Context) {
             Log.e("Permission Error", "Unknown Device (No BT Connect Permission)")
             return
         }
+        val currentList = _scanResults.value
+        val mutableList = currentList.toMutableList() // Create a mutable copy
         val device = result.device
         val rssi = result.rssi
         val scanRecord = result.scanRecord
@@ -105,7 +122,7 @@ class DeviceScanner(private val context: Context) {
 
         // Check if a device with this address already exists
         val existingDeviceIndex =
-            _scanResults.value.indexOfFirst { it.deviceAddress == deviceAddress }
+            mutableList.indexOfFirst { it.deviceAddress == deviceAddress }
 
         val btleDevice = BtleDevice(
             deviceType = deviceType,
@@ -121,16 +138,17 @@ class DeviceScanner(private val context: Context) {
         // Update the scanResults list
         if (existingDeviceIndex == -1) {
             // Device is new, add it to the list
-            _scanResults.value.add(btleDevice)
+            mutableList.add(btleDevice)
         } else {
             // Device exists, update its data (e.g., RSSI)
-            val existingDevice = _scanResults.value[existingDeviceIndex]
-            existingDevice.signalStrength = btleDevice.signalStrength
+            val existingDevice = mutableList[existingDeviceIndex]
+            mutableList[existingDeviceIndex] = existingDevice.copy(signalStrength = btleDevice.signalStrength)
             // Update other properties as needed (e.g., if you want to update the device name from scan)
             // existingDevice.deviceName = btleDevice.deviceName
         }
+        _scanResults.value= mutableList
         //scanCallback?.onScanResult(scanResults)
-        scanCallback?.invoke((scanResults.value.toList()))
+        scanCallback?.invoke((_scanResults.value.toList()))
     }
 
 
@@ -145,26 +163,22 @@ Functions below will be in another file likely ViewModel to process intents and 
 //    /**
 //     * This function contains the core logic for calling system method to start BT Scan.
 //     */
-    fun startScanning() : EmptyResult<DataError.ScanningError> {
+    fun startScanning() : EmptyResult<ScanningError> {
         Log.d("DeviceScanner", "startScanning called")
 
-        if(
-            (ContextCompat.checkSelfPermission(context, Manifest.permission_group.NEARBY_DEVICES) != PackageManager.PERMISSION_GRANTED)
-            ||
-            (ContextCompat.checkSelfPermission(context, Manifest.permission_group.LOCATION) != PackageManager.PERMISSION_GRANTED)
-            ) {
-            return Result.Error(DataError.ScanningError.MISSING_PERMISSIONS)
+        if(ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED){
+            return Result.Error(ScanningError.MISSING_PERMISSIONS)
         }
-        if (isScanning) return Result.Error(DataError.ScanningError.ALREADY_SCANNING)
+        if (isScanning) return Result.Error(ScanningError.ALREADY_SCANNING)
 
         if (
             (bluetoothAdapter == null)
             ||
             (bluetoothLeScanner == null)
             ) {
-            return Result.Error(DataError.ScanningError.UNKNOWN_ERROR)
+            return Result.Error(ScanningError.UNKNOWN_ERROR)
         }
-            if (!bluetoothAdapter.isEnabled ) return Result.Error(DataError.ScanningError.BLUETOOTH_DISABLED)
+            if (!bluetoothAdapter.isEnabled ) return Result.Error(ScanningError.BLUETOOTH_DISABLED)
 
         try {
             isScanning = true
@@ -174,17 +188,22 @@ Functions below will be in another file likely ViewModel to process intents and 
         }
         catch(_: Exception) {
             isScanning = false
-            return Result.Error(DataError.ScanningError.SCANNER_FAILED)
+            return Result.Error(ScanningError.SCANNER_FAILED)
         }
 
     } // End of startScanning() function
-    @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
-    fun stopScanning() {
+    fun stopScanning() : EmptyResult<ScanningError> {
+        if(
+            (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED)
+            ) {
+            return Result.Error(ScanningError.MISSING_PERMISSIONS)
+        }
         tag = "DeviceScanner.stopScanning()"
         Log.d(tag, "stopScanning called")
-        if (!isScanning) return
+        if (!isScanning) return Result.Error(ScanningError.ALREADY_SCANNING)
         isScanning = false
         bluetoothLeScanner?.stopScan(leScanCallback)
+        return Result.Success(Unit)
     }// End of stopScanning()
 //
 //    fun getScanState():Boolean{

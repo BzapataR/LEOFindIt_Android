@@ -2,9 +2,8 @@ package com.example.leofindit.navigation
 
 import kotlinx.serialization.Serializable
 
-@Serializable
 sealed interface MainNavigation {
-
+    @Serializable
     data object MainNavGraph: MainNavigation
 
     @Serializable
