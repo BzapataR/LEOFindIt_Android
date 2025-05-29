@@ -141,15 +141,30 @@ class DeviceRepository(
 
     override suspend fun editNickName(address: String, newNickName: String) : EmptyResult<DbError> {
         var databaseDevice = dao.getDeviceByAddress(address).firstOrNull()
-            if(databaseDevice!= null) {
-                databaseDevice
-                try {
-                    dao.upsert(databaseDevice.copy(deviceNickname = newNickName))
-                } catch (_: SQLiteException) {
-                    return Result.Error(DbError.DISK_FULL)
-                }
+        if(databaseDevice!= null) {
+            try {
+                dao.upsert(databaseDevice.copy(deviceNickname = newNickName))
+            } catch (_: SQLiteException) {
+                return Result.Error(DbError.DISK_FULL)
             }
+        }
         scanner.mutateDeviceNickName(address = address, newNickName = newNickName)
+        return Result.Success(Unit)
+    }
+
+    override suspend fun editDeviceSus(
+        address: String,
+        newSusValue: Boolean?
+    ): EmptyResult<DbError> {
+        var databaseDevice = dao.getDeviceByAddress(address).firstOrNull()
+        if(databaseDevice!= null) {
+            try {
+                if (newSusValue == null) { dao.delete(databaseDevice)} // we don't want to store neutral values
+                dao.upsert(databaseDevice.copy(isSuspicious = newSusValue))
+            } catch (_: SQLiteException) {
+                return Result.Error(DbError.DISK_FULL)
+            }
+        }
         return Result.Success(Unit)
     }
 

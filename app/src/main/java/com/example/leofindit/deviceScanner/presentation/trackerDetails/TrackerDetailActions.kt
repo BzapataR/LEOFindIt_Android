@@ -1,15 +1,13 @@
 package com.example.leofindit.deviceScanner.presentation.trackerDetails
 
-import com.example.leofindit.deviceScanner.domain.BtleDevice
-
 sealed interface TrackerDetailActions {
-    data object goBack : TrackerDetailActions
-    data object toLocateTracker : TrackerDetailActions
-    data object editNickName : TrackerDetailActions
-    data object toManufactuerWebsite : TrackerDetailActions
-    data object markNeutral : TrackerDetailActions
-    data object markSafe : TrackerDetailActions
-    data object markSus : TrackerDetailActions
-    data object copy : TrackerDetailActions
+    data object GoBack : TrackerDetailActions
+    data object ToLocateTracker : TrackerDetailActions
+    data class EditNickName(val newNickName : String) : TrackerDetailActions
+    data object ToManufacturerWebsite : TrackerDetailActions
+    data object MarkNeutral : TrackerDetailActions
+    data object MarkSafe : TrackerDetailActions
+    data object MarkSus : TrackerDetailActions
+    data object Copy : TrackerDetailActions
     //data class interrogate(val device : BtleDevice)
 }

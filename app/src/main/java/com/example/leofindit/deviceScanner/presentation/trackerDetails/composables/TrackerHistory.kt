@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.trackerDetails
+package com.example.leofindit.deviceScanner.presentation.trackerDetails.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

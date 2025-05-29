@@ -31,9 +31,9 @@ class HomePageViewModel(
 
     fun onAction(action: HomePageActions) {
         when (action) {
-            is HomePageActions.onDeviceClick -> {}
-            is HomePageActions.onSettingsButtonClick -> {}
-            is HomePageActions.toMarkedDevices -> {}
+            is HomePageActions.onDeviceClick -> { /* pass logic from main activity to navigate*/}
+            is HomePageActions.onSettingsButtonClick -> {/* pass logic from main activity to navigate*/}
+            is HomePageActions.toMarkedDevices -> {/* pass logic from main activity to navigate*/}
 
             is HomePageActions.pauseScan -> {
                 pauseScan()

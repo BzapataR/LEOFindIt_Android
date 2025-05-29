@@ -17,6 +17,7 @@ interface DataRepository {
     suspend fun deleteAllDevices()
     fun getDeviceByAddress(address : String): Flow<BtleDevice?>
     suspend fun editNickName(address: String, newNickName : String): EmptyResult<DataError.DbError>
+    suspend fun editDeviceSus(address : String, newSusValue : Boolean?) : EmptyResult<DataError.DbError>
     //fun trackDevice()
 
 
