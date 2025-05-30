@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.introduction
+package com.example.leofindit.Intro.presentation.introduction
 
 import android.Manifest
 import android.os.Build
@@ -44,7 +44,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun NotificationPermission(navController: NavController? = null) {
+fun NotificationPermission(toNextComposable : () -> Unit ) {
     val notificationPermissionList = rememberPermissionState(
         permission =
             Manifest.permission.POST_NOTIFICATIONS
@@ -77,7 +77,7 @@ fun NotificationPermission(navController: NavController? = null) {
         )
         Column {
             TextButton (
-                onClick = { navController?.navigate("Permission Done") },
+                onClick = { toNextComposable() },
                 modifier = Modifier.fillMaxWidth(.75f)
 
             ) {
@@ -91,7 +91,7 @@ fun NotificationPermission(navController: NavController? = null) {
                     if (!notificationPermissionList.status.isGranted) {
                         notificationPermissionList.launchPermissionRequest()
                     } else {
-                        navController?.navigate("Permission Done")
+                        toNextComposable()
                     }
 
                 },
@@ -116,7 +116,7 @@ fun NotificationPermissionPreview() {
         Surface(
             modifier = Modifier.fillMaxSize()
         ) {
-            NotificationPermission()
+            NotificationPermission({})
         }
     }
 }

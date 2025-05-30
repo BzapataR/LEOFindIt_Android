@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.introduction
+package com.example.leofindit.Intro.presentation.introduction
 
 import android.Manifest
 import android.content.Intent
@@ -46,8 +46,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
  *********************************************************************************/
 @Composable
 @OptIn(ExperimentalPermissionsApi::class)
-@RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-fun BluetoothPermission(navController: NavController? = null) {
+fun BluetoothPermission(toNotification : () -> Unit, toFinish : () -> Unit) {
 
     val permissionsState = BtHelper.rememberPermissions()
     val btEnabled by BtHelper.checkingBtEnabledState()
@@ -126,9 +125,9 @@ fun BluetoothPermission(navController: NavController? = null) {
                     // If everything is granted and enabled, move to the next screen
                     permissionsState.allPermissionsGranted && BtHelper.isBtEnabled() -> {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            navController?.navigate("Notification Access")
+                            toNotification()
                         }
-                        else navController?.navigate("Permission Done")
+                        else toFinish()
                     }
                 }
 
@@ -163,13 +162,12 @@ fun BluetoothPermission(navController: NavController? = null) {
 
 @Preview
 @Composable
-@RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
 fun BluetoothPermissionPreview() {
     LeoFindItTheme {
         Surface(
             modifier = Modifier.fillMaxSize()
         ) {
-            BluetoothPermission()
+            BluetoothPermission({} ,{})
         }
     }
 }

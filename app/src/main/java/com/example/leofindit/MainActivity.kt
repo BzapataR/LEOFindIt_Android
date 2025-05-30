@@ -22,12 +22,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,7 +41,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -54,19 +51,17 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.leofindit.controller.BtHelper
 import com.example.leofindit.controller.LocationHelper
-import com.example.leofindit.deviceScanner.data.DeviceScanner
-import com.example.leofindit.deviceScanner.data.database.AppDatabase
-import com.example.leofindit.deviceScanner.data.database.DatabaseProvider
 import com.example.leofindit.deviceScanner.presentation.SelectedDeviceViewModel
 import com.example.leofindit.deviceScanner.presentation.homePage.HomePageRoot
 import com.example.leofindit.deviceScanner.presentation.homePage.HomePageViewModel
-import com.example.leofindit.deviceScanner.presentation.introduction.BluetoothPermission
-import com.example.leofindit.deviceScanner.presentation.introduction.Introduction
-import com.example.leofindit.deviceScanner.presentation.introduction.LocationAccess
-import com.example.leofindit.deviceScanner.presentation.introduction.NotificationPermission
-import com.example.leofindit.deviceScanner.presentation.introduction.PermissionsDone
+import com.example.leofindit.Intro.presentation.introduction.BluetoothPermission
+import com.example.leofindit.Intro.presentation.introduction.Introduction
+import com.example.leofindit.Intro.presentation.introduction.LocationAccess
+import com.example.leofindit.Intro.presentation.introduction.NotificationPermission
+import com.example.leofindit.Intro.presentation.introduction.PermissionsDone
 import com.example.leofindit.deviceScanner.presentation.settings.AppInfo
 import com.example.leofindit.deviceScanner.presentation.settings.Settings
+import com.example.leofindit.navigation.IntroNav
 import com.example.leofindit.navigation.MainNavigation
 import com.example.leofindit.preferences.UserPreferencesRepository
 import com.example.leofindit.ui.theme.Background
@@ -88,9 +83,6 @@ class MainActivity : ComponentActivity() {
          var keepSplashScreenOn = true
         installSplashScreen().setKeepOnScreenCondition { keepSplashScreenOn }
         super.onCreate(savedInstanceState)
-        // makes sure the status bar is readable with background
-        WindowCompat.getInsetsController(window, window.decorView)
-            .isAppearanceLightStatusBars = false
         enableEdgeToEdge()
         setContent {
             LeoFindItTheme {
@@ -302,27 +294,57 @@ private inline fun <reified T: ViewModel> NavBackStackEntry.sharedKoinViewModel(
 @Composable
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-fun IntroNavigator(introNavController: NavHostController, onFinish: () -> Unit) {
+fun IntroNavigator(introNavCtrl: NavHostController, onFinish: () -> Unit) {
     NavHost(
-        navController = introNavController,
-        startDestination = "Introduction"
+        navController = introNavCtrl,
+        startDestination = IntroNav.IntroRouteGraph
     ) {
-        composable("Introduction") {
-            Introduction(navController = introNavController)
-            //FilterSideSheet()
-        }
-        composable("Location Permission") {
-            LocationAccess(navController = introNavController)
-        }
-        composable("Bluetooth Permission")  {
-            BluetoothPermission(navController = introNavController)
-        }
-        //Notification permission is not needed for API > 33
-        composable("Notification Access") {
-            NotificationPermission(navController = introNavController)
-        }
-        composable("Permission Done") {
-            PermissionsDone(onFinish = onFinish)
+        navigation<IntroNav.IntroRouteGraph>(
+            startDestination = IntroNav.Introduction
+        ) {
+            composable<IntroNav.Introduction>(
+                exitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popExitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popEnterTransition = { slideInHorizontally { fullWidth -> fullWidth } },
+                enterTransition = { slideInHorizontally { fullWidth -> fullWidth } }
+            ) {
+                Introduction({ introNavCtrl.navigate(IntroNav.LocationPermission) })
+            }
+            composable<IntroNav.LocationPermission>(
+                exitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popExitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popEnterTransition = { slideInHorizontally { fullWidth -> fullWidth } },
+                enterTransition = { slideInHorizontally { fullWidth -> fullWidth } }
+            ) {
+                LocationAccess({introNavCtrl.navigate(IntroNav.BluetoothPermission) })
+            }
+            composable<IntroNav.BluetoothPermission>(
+                exitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popExitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popEnterTransition = { slideInHorizontally { fullWidth -> fullWidth } },
+                enterTransition = { slideInHorizontally { fullWidth -> fullWidth } }
+            ) {
+                BluetoothPermission(
+                    toNotification = {introNavCtrl.navigate(IntroNav.NotificationAccess)},
+                    toFinish = {introNavCtrl.navigate(IntroNav.PermissionsDone)}
+                )
+            }
+            composable<IntroNav.NotificationAccess>(
+                exitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popExitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popEnterTransition = { slideInHorizontally { fullWidth -> fullWidth } },
+                enterTransition = { slideInHorizontally { fullWidth -> fullWidth } }
+            ) {
+                NotificationPermission({ introNavCtrl.navigate(IntroNav.PermissionsDone) })
+            }
+            composable<IntroNav.PermissionsDone>(
+                exitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popExitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
+                popEnterTransition = { slideInHorizontally { fullWidth -> fullWidth } },
+                enterTransition = { slideInHorizontally { fullWidth -> fullWidth } }
+            ) {
+                PermissionsDone({onFinish()})
+            }
         }
     }
 }

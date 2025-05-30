@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.introduction
+package com.example.leofindit.Intro.presentation.introduction
 
 import android.content.Intent
 import android.net.Uri
@@ -44,7 +44,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
  *********************************************************************************/
 @Composable
 @OptIn(ExperimentalPermissionsApi::class)
-fun LocationAccess(navController: NavController? = null) {
+fun LocationAccess(toNextComposable : ()-> Unit) {
 
     val context = LocalContext.current
     val permissionsState = rememberLocationPermissionState()
@@ -97,7 +97,7 @@ fun LocationAccess(navController: NavController? = null) {
                         LocationHelper.enableLocationService(context)
                     }
                    permissionsState.allPermissionsGranted && LocationHelper.isLocationServiceEnabled() -> {
-                       navController?.navigate("Bluetooth Permission")
+                       toNextComposable()
                    }
                 }
             },
@@ -126,7 +126,7 @@ fun LocationAccess(navController: NavController? = null) {
 fun LocationAccessPreview() {
     LeoFindItTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            LocationAccess()
+            LocationAccess({})
         }
     }
 }

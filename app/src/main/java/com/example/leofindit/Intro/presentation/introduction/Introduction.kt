@@ -5,7 +5,7 @@
 //  Written by Brian Zapata Resendiz
 
 // IntroductionView.kt
-package com.example.leofindit.deviceScanner.presentation.introduction
+package com.example.leofindit.Intro.presentation.introduction
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,11 +42,7 @@ import com.example.leofindit.ui.theme.Surface
  *                   Welcome page for app (once only)
  *********************************************************************************/
 @Composable
-fun Introduction(navController: NavController? = null) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-
-
-
+fun Introduction(nextComposable : () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceEvenly,
@@ -128,10 +124,9 @@ fun Introduction(navController: NavController? = null) {
                 }
             }
         }
-        //Button todo add navigation
         Button(
             onClick = {
-                navController?.navigate("Location Permission")
+                nextComposable()
             },
             modifier = Modifier.fillMaxWidth(.75f),
             colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = OnSurface)
@@ -151,7 +146,7 @@ fun IntroPreview() {
         Surface(modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Introduction()
+            Introduction({})
         }
     }
 }
