@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
@@ -56,10 +58,10 @@ class DeviceScanner(private val context: Context) {
             newList
         }
     }
-    fun findDeviceByAddress(address: String) : Flow<BtleDevice?> {
-        return scanResults.map {
-            it.firstOrNull{ it.deviceAddress == address}
-        }
+    fun findDeviceByAddress(address: String) : Flow<BtleDevice> {
+        return _scanResults.map { list->
+            list.firstOrNull { it.deviceAddress == address }
+        }.filterNotNull()
     }
 
 

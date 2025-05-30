@@ -41,6 +41,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -61,6 +62,8 @@ import com.example.leofindit.Intro.presentation.introduction.NotificationPermiss
 import com.example.leofindit.Intro.presentation.introduction.PermissionsDone
 import com.example.leofindit.deviceScanner.presentation.settings.AppInfo
 import com.example.leofindit.deviceScanner.presentation.settings.Settings
+import com.example.leofindit.deviceScanner.presentation.trackerDetails.TrackerDetailViewModel
+import com.example.leofindit.deviceScanner.presentation.trackerDetails.TrackerDetailsRoot
 import com.example.leofindit.navigation.IntroNav
 import com.example.leofindit.navigation.MainNavigation
 import com.example.leofindit.preferences.UserPreferencesRepository
@@ -156,6 +159,7 @@ fun MainNavigator(
         navigation<MainNavigation.MainNavGraph>(
             startDestination = MainNavigation.ManualScan
         ) {
+
             composable<MainNavigation.ManualScan>(
                 popExitTransition = { slideOutHorizontally{ fullWidth -> fullWidth } },
                 exitTransition = { slideOutHorizontally{fullWidth -> fullWidth} },
@@ -165,6 +169,9 @@ fun MainNavigator(
                 val homePageViewModel = koinViewModel<HomePageViewModel>()
                 val selectedDeviceViewModel =
                     it.sharedKoinViewModel<SelectedDeviceViewModel>(navigator)
+                LaunchedEffect(Unit) {
+                    selectedDeviceViewModel.onSelectedDevice(null)
+                }
                 HomePageRoot(
                     viewModel = homePageViewModel,
                     onDeviceClick = { device ->
@@ -177,21 +184,27 @@ fun MainNavigator(
                     toMarkedDevices = { navigator.navigate(MainNavigation.MarkedDevice) }
                 )
             }
+
             composable<MainNavigation.TrackerDetails>(
                 enterTransition = { slideInHorizontally { initialOffset -> initialOffset } },
                 exitTransition = { slideOutHorizontally { initialOffset -> initialOffset } },
             ) {
-//                val selectedDeviceViewModel =
-//                    it.sharedKoinViewModel<SelectedDeviceViewModel>(navigator)
-//                val selectedDevice
-//                    by selectedDeviceViewModel.selectedDevice.collectAsStateWithLifecycle()
-//                LaunchedEffect(selectedDevice) {
-//                    selectedDevice.let {
-//                        viewModel
-//                    }
-//                }
-
+                val trackerDetailViewModel = koinViewModel<TrackerDetailViewModel>()
+                val selectedDeviceViewModel =
+                    it.sharedKoinViewModel<SelectedDeviceViewModel>(navigator)
+                val selectedDevice
+                    by selectedDeviceViewModel.selectedDevice.collectAsStateWithLifecycle()
+                LaunchedEffect(selectedDevice) {
+                    selectedDevice.let {
+                        selectedDeviceViewModel.onSelectedDevice(it)
+                    }
                 }
+                TrackerDetailsRoot(
+                    viewModel = trackerDetailViewModel,
+                    goBack = {navigator.popBackStack()}
+                )
+            }
+
             composable<MainNavigation.Settings>(
                 exitTransition = { slideOutHorizontally{fullWidth -> fullWidth} },
                 popExitTransition = { slideOutHorizontally {fullWidth -> fullWidth} },
@@ -204,14 +217,15 @@ fun MainNavigator(
                     //toSavedDevices = TODO()
                 )
             }
+
             composable<MainNavigation.MarkedDevice>(
                 exitTransition = { slideOutHorizontally{fullWidth -> fullWidth} },
                 popExitTransition = { slideOutHorizontally {fullWidth -> fullWidth} },
                 popEnterTransition = { slideInHorizontally {fullWidth -> fullWidth} },
                 enterTransition = { slideInHorizontally{fullWidth -> fullWidth} }
             ) {
-
             }
+
             composable<MainNavigation.AppInfo>(
                 exitTransition = { slideOutHorizontally{fullWidth -> fullWidth} },
                 popExitTransition = { slideOutHorizontally {fullWidth -> fullWidth} },
@@ -222,6 +236,7 @@ fun MainNavigator(
                     goBack = { navigator.popBackStack() }
                 )
             }
+
             }
         }
     }

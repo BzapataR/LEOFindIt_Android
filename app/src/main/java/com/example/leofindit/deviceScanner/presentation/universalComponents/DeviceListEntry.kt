@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -40,7 +41,7 @@ fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice) {
             containerColor = Surface
         ),
         onClick = {
-            onListItemClick
+            onListItemClick()
         }
     ) {
         Row(
@@ -63,6 +64,7 @@ fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice) {
                     Text(
                         text = device.deviceName,
                         style = MaterialTheme.typography.titleMedium,
+                        overflow = Ellipsis,
                         modifier = Modifier.width(192.dp),
                         color = GoldPrimaryDull
                     )
@@ -73,13 +75,13 @@ fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice) {
                 // Signal strength icon aligned to the end
                 val signalStrengthIcon = when {
                     device.signalStrength!! >= -50 -> LeoIcons.SignalStrengthHigh
-                    device.signalStrength!! >= -70 -> LeoIcons.SignalStrengthMed
+                    device.signalStrength >= -70 -> LeoIcons.SignalStrengthMed
                     else -> LeoIcons.SignalStrengthLow
                 }
                 //Signal Color
                 val signalStrengthColor = when {
-                    device.signalStrength!! >= -50 -> Color.Green
-                    device.signalStrength!! >= -70 -> Color.Yellow
+                    device.signalStrength >= -50 -> Color.Green
+                    device.signalStrength >= -70 -> Color.Yellow
                     else -> Color.Red
                 }
                 Column (

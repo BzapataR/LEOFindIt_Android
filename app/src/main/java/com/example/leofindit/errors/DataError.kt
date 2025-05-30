@@ -13,4 +13,7 @@ sealed interface DataError : Error {
         SCANNER_FAILED,
         UNKNOWN_ERROR,
     }
+    enum class RepositoryError : DataError {
+        DEVICE_NOT_FOUND,
+    }
 }

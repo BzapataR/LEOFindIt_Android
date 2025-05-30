@@ -18,9 +18,13 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.launch
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class DeviceRepository(
     private val dao : BTLEDeviceDao,
@@ -130,14 +134,18 @@ class DeviceRepository(
         dao.deleteAll()
     }
 
-    override fun getDeviceByAddress(address: String): Flow<BtleDevice?> {
-        return combine(
-            scanner.findDeviceByAddress(address),
-            dao.getDeviceByAddress(address)
-        ) {scanResult, dbResult ->
+    override fun getDeviceByAddress(address: String): Result<Flow<BtleDevice>, DataError.RepositoryError> {
+        var notFound: Boolean = false
+        val scanListDevice = scanner.findDeviceByAddress(address)
+        val dataBaseDevice = dao.getDeviceByAddress(address)
+        val foundDevice = combine(scanListDevice, dataBaseDevice ) { scanResult, dbResult ->
             combinedList(scanResult, dbResult)
-    }
+        }.onEmpty { notFound = true }.filterNotNull()
+        if(notFound) {
+            return Result.Error(DataError.RepositoryError.DEVICE_NOT_FOUND)
         }
+        else return Result.Success(foundDevice)
+    }
 
     override suspend fun editNickName(address: String, newNickName: String) : EmptyResult<DbError> {
         var databaseDevice = dao.getDeviceByAddress(address).firstOrNull()
@@ -166,6 +174,16 @@ class DeviceRepository(
             }
         }
         return Result.Success(Unit)
+    }
+    fun timeStampFormat(timeStamp: Long): String {
+        val timeDiffMillis = System.currentTimeMillis() - timeStamp
+        val hours = TimeUnit.MILLISECONDS.toHours(timeDiffMillis)
+        val minutes =
+            TimeUnit.MILLISECONDS.toMinutes(timeDiffMillis) - TimeUnit.HOURS.toMinutes(hours)
+        val seconds =
+            TimeUnit.MILLISECONDS.toSeconds(timeDiffMillis) - TimeUnit.MINUTES.toSeconds(minutes)
+
+        return String.format(Locale.US,"%02d:%02d:%02d", hours, minutes, seconds)
     }
 
 

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -25,7 +26,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,11 +43,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.leofindit.R
 import com.example.leofindit.deviceScanner.domain.BtleDevice
+import com.example.leofindit.deviceScanner.presentation.homePage.components.FAB
 import com.example.leofindit.deviceScanner.presentation.homePage.components.MissingPermissions
 import com.example.leofindit.deviceScanner.presentation.homePage.components.Scanning
 import com.example.leofindit.deviceScanner.presentation.universalComponents.DeviceListEntry
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.InversePrimary
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -68,124 +79,180 @@ fun HomePageRoot(
 
 @Composable
 fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
-    LazyColumn(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxSize()
-    )
-    {
-        item { // top Row With Name, Pause/Play, and Settings
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                // Left: Play/Pause Buttons
-                Row(
-                    modifier = Modifier
-                        .padding(start = 12.dp)
-                        .background(InversePrimary, shape = MaterialTheme.shapes.medium)
-                        .padding(8.dp)
-                        .align(Alignment.CenterStart)
+    val lazyListState = rememberLazyListState()
+    var fabVisible by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    var autoHideJob by remember { mutableStateOf<Job?>(null) }
+
+    // Condition for showing FAB: true if scrolled past the first item.
+    val pastFirstIndex by remember {
+        derivedStateOf { lazyListState.firstVisibleItemIndex > 0 }
+    }
+
+    LaunchedEffect(pastFirstIndex, lazyListState.isScrollInProgress) {
+        if (pastFirstIndex) {
+            fabVisible = true
+            autoHideJob?.cancel() // Cancel any existing auto-hide job
+
+            if (!lazyListState.isScrollInProgress) {
+                // If scrolling has stopped, start the auto-hide timer
+                autoHideJob = coroutineScope.launch {
+                    delay(2000L)
+                    fabVisible = false // Then hide the FAB
+                }
+            }
+        } else {
+            // If we are at the top of the list or initially
+            fabVisible = false
+            autoHideJob?.cancel()
+        }
+    }
+    Box() {
+        LazyColumn(
+            state = lazyListState,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxSize()
+        )
+        {
+            item { // top Row With Name, Pause/Play, and Settings
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Stop Button
-                    IconButton(
-                        onClick = { onAction(HomePageActions.pauseScan) },
-                        enabled = !state.missingPermissions,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = if (!state.isScanning) GoldPrimary else Color.Transparent
-                        ),
-                        modifier = Modifier
-                            .padding(end = 12.dp)
-                            .size(24.dp)
-                    ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.stop_24dp_e3e3e3_fill1_wght400_grad0_opsz24),
-                            contentDescription = null,
-                            tint = if (!state.isScanning) Color.Black else GoldPrimary
-                        )
-                    }
-
-                    VerticalDivider(color = Color.LightGray, modifier = Modifier.height(24.dp))
-
-                    // Play Button
-                    IconButton(
-                        onClick = { onAction(HomePageActions.startScan) },
-                        enabled = !state.missingPermissions,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = if (state.isScanning) GoldPrimary else Color.Transparent
-
-                        ),
+                    // Left: Play/Pause Buttons
+                    Row(
                         modifier = Modifier
                             .padding(start = 12.dp)
-                            .size(24.dp)
+                            .background(InversePrimary, shape = MaterialTheme.shapes.medium)
+                            .padding(8.dp)
+                            .align(Alignment.CenterStart)
+                    ) {
+                        // Stop Button
+                        IconButton(
+                            onClick = { onAction(HomePageActions.pauseScan) },
+                            enabled = !state.missingPermissions,
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = if (!state.isScanning) GoldPrimary else Color.Transparent
+                            ),
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.stop_24dp_e3e3e3_fill1_wght400_grad0_opsz24),
+                                contentDescription = null,
+                                tint = if (!state.isScanning) Color.Black else GoldPrimary
+                            )
+                        }
+
+                        VerticalDivider(color = Color.LightGray, modifier = Modifier.height(24.dp))
+
+                        // Play Button
+                        IconButton(
+                            onClick = { onAction(HomePageActions.startScan) },
+                            enabled = !state.missingPermissions,
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = if (state.isScanning) GoldPrimary else Color.Transparent
+
+                            ),
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.baseline_play_arrow_24),
+                                contentDescription = null,
+                                tint = if (state.isScanning && (!state.missingPermissions)) Color.Black else GoldPrimary
+
+                            )
+                        }
+                    }
+
+                    // Center: Scan Text
+                    Text(
+                        text = "Scan",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+
+                    // Right: Settings Icon Button
+                    IconButton(
+                        onClick = { onAction(HomePageActions.onSettingsButtonClick) },
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent),
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 12.dp)
                     ) {
                         Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.baseline_play_arrow_24),
+                            imageVector = ImageVector.vectorResource(R.drawable.outline_settings_24),
                             contentDescription = null,
-                            tint = if (state.isScanning && (!state.missingPermissions)) Color.Black else GoldPrimary
-
+                            tint = GoldPrimary
                         )
                     }
                 }
-
-                // Center: Scan Text
-                Text(
-                    text = "Scan",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-
-                // Right: Settings Icon Button
-                IconButton(
-                    onClick = { onAction(HomePageActions.onSettingsButtonClick) },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent),
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 12.dp)
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.outline_settings_24),
-                        contentDescription = null,
-                        tint = GoldPrimary
-                    )
-                }
             }
-        }
-        if (state.isLoading == true || (state.deviceList.isEmpty() && state.isScanning)) {
-            item { Scanning { onAction(HomePageActions.toMarkedDevices) } }
-        }
-        else
-            when {
-                state.missingPermissions == true -> { item {
-                    MissingPermissions(stateError = state.error.toString())
-                    Log.e("error", state.error.toString())
-                }}
-                state.error != null -> { item {
-                    MissingPermissions(stateError = state.error.toString())
-                    Log.e("error", state.error.toString())
-                } }
-                else -> {
-                    item{
-                        if (!state.namedDeviceList.isEmpty()) {
-                            Text("Named Devices", color = GoldPrimary)
+            if (state.isLoading == true || (state.deviceList.isEmpty() && state.isScanning)) {
+                item { Scanning { onAction(HomePageActions.toMarkedDevices) } }
+            } else
+                when {
+                    state.missingPermissions == true -> {
+                        item {
+                            MissingPermissions(stateError = state.error.toString())
+                            Log.e("error", state.error.toString())
                         }
                     }
-                    itemsIndexed(state.namedDeviceList) { index, device ->
-                        DeviceListEntry(device = device, onListItemClick = { onAction(HomePageActions.onDeviceClick(device)) })
-                        Spacer(modifier = Modifier.size(8.dp))
-                    }
-                    item{
-                        if (!state.unnamedDevices.isEmpty())
-                            Text("Unnamed Devices", color= GoldPrimary)
+
+                    state.error != null -> {
+                        item {
+                            MissingPermissions(stateError = state.error.toString())
+                            Log.e("error", state.error.toString())
+                        }
                     }
 
-                    itemsIndexed(state.unnamedDevices) { index, device ->
-                        DeviceListEntry(device = device, onListItemClick = { onAction(HomePageActions.onDeviceClick(device))})
-                        Spacer(modifier = Modifier.size(8.dp))
+                    else -> {
+                        item {
+                            if (!state.namedDeviceList.isEmpty()) {
+                                Text("Named Devices", color = GoldPrimary)
+                            }
+                        }
+                        itemsIndexed(state.namedDeviceList) { index, device ->
+                            DeviceListEntry(
+                                device = device,
+                                onListItemClick = {
+                                    onAction(
+                                        HomePageActions.onDeviceClick(
+                                            device
+                                        )
+                                    )
+                                }
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
+                        }
+                        item {
+                            if (!state.unnamedDevices.isEmpty())
+                                Text("Unnamed Devices", color = GoldPrimary)
+                        }
+
+                        itemsIndexed(state.unnamedDevices) { index, device ->
+                            DeviceListEntry(
+                                device = device,
+                                onListItemClick = { onAction(HomePageActions.onDeviceClick(device)) })
+                            Spacer(modifier = Modifier.size(8.dp))
+                        }
                     }
                 }
-            }
+        }
+        FAB(
+            visible = fabVisible,
+            onClick = {
+                coroutineScope.launch {
+                    lazyListState.animateScrollToItem(0)
+                }
+            },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

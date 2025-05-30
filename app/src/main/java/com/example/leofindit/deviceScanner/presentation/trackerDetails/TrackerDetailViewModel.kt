@@ -1,10 +1,13 @@
 package com.example.leofindit.deviceScanner.presentation.trackerDetails
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.navigation.toRoute
 import androidx.lifecycle.viewModelScope
 import com.example.leofindit.deviceScanner.data.DeviceRepository
+import com.example.leofindit.errors.onError
+import com.example.leofindit.errors.onSuccess
 import com.example.leofindit.navigation.MainNavigation
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +30,7 @@ class TrackerDetailViewModel (
     private val _state = MutableStateFlow(TrackerDetailsState())
     val state = _state.asStateFlow()
         .onStart {
+            Log.i("TrackerDetailViewModel", deviceAddress)
             fetchDevice()
             observeMarkedStatus()
         }
@@ -50,27 +54,43 @@ class TrackerDetailViewModel (
             is TrackerDetailActions.MarkSafe -> { markSafe() }
             is TrackerDetailActions.MarkSus -> { markSus() }
             is TrackerDetailActions.ToLocateTracker -> {/* pass logic from main activity to pop backStack*/}
-            is TrackerDetailActions.ToManufacturerWebsite -> {}
+            is TrackerDetailActions.ToManufacturerWebsite -> { toWebsite(_state.value.manufacturerSite) }
+            is TrackerDetailActions.OnIndexChange -> {
+                _state.update { it.copy(indexSelected = action.newIndex) }
+            }
+            TrackerDetailActions.ShowDeleteDialog -> {
+                _state.update { it.copy(showDeletionDialog= !_state.value.showDeletionDialog) }
+            }
+            TrackerDetailActions.ShowEditDialog -> {
+                _state.update { it.copy(showNickNameDialog = !_state.value.showNickNameDialog) }
+            }
         }
     }
 
     private fun fetchDevice() {
         observeDevice?.cancel()
-        _state.update{it.copy(isLoading = true)}
-        observeDevice = deviceRepository.getDeviceByAddress(deviceAddress).onEach { device ->
-            _state.update {
-                it.copy(
-                    deviceName = device?.deviceName.toString(),
-                    time = device?.timeStamp.toString(),
-                    address = deviceAddress,
-                    deviceType = "BluetoothDevice",//TODO this is temp
-                    nickName = device?.nickName.toString(),
-                    manufacturerSite = "www.google.com", // TODO temp
-                    isSus = device?.isSuspicious,
-                    isLoading = false
-                )
-            }
-        }.launchIn(viewModelScope)
+        _state.update { it.copy(isLoading = true) }
+        deviceRepository.getDeviceByAddress(deviceAddress).onSuccess { flow ->
+            observeDevice = flow.onEach { device ->
+                _state.update {
+                    it.copy(
+                        deviceName = device.deviceName.toString(),
+                        time = deviceRepository.timeStampFormat(device.timeStamp),
+                        address = deviceAddress,
+                        deviceType = "BluetoothDevice",//TODO this is temp
+                        nickName = device.nickName.toString(),
+                        manufacturerSite = "www.google.com", // TODO temp
+                        isSus = device.isSuspicious,
+                        isLoading = false,
+                        error = null
+                    )
+                }
+            }.launchIn(viewModelScope)
+        }
+            .onError{ error->
+                observeDevice?.cancel()
+            _state.update { it.copy(isLoading = false , error = error.toString()) }
+        }
     }
     private fun markSus () {
         viewModelScope.launch {
@@ -91,6 +111,9 @@ class TrackerDetailViewModel (
         viewModelScope.launch {
             deviceRepository.editNickName(address = address, newNickName = newNickName)
         }
+    }
+    private fun toWebsite(url: String) {
+
     }
 
 }
