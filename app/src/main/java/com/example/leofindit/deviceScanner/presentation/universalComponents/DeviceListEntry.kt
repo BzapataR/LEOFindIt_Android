@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.leofindit.deviceScanner.domain.BtleDevice
@@ -33,10 +34,9 @@ import com.example.leofindit.ui.theme.Surface
 //                    Scanning Home page
 //********************************************************************************
 @Composable
-fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice) {
-    val address = device.deviceAddress
+fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice, height : Dp = 40.dp, width : Dp = 360.dp) {
     Card(
-        modifier = Modifier.size(width = 360.dp, height = 40.dp),
+        modifier = Modifier.size(width = width, height = height),
         colors = CardDefaults.cardColors(
             containerColor = Surface
         ),

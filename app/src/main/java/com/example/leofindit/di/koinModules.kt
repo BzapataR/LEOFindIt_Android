@@ -5,10 +5,12 @@ import com.example.leofindit.deviceScanner.data.DeviceScanner
 import com.example.leofindit.deviceScanner.data.database.AppDatabase
 import com.example.leofindit.deviceScanner.domain.DataRepository
 import com.example.leofindit.deviceScanner.presentation.SelectedDeviceViewModel
+import com.example.leofindit.deviceScanner.presentation.databaseDevices.DatabaseDeviceViewModel
 import com.example.leofindit.deviceScanner.presentation.homePage.HomePageViewModel
 import com.example.leofindit.deviceScanner.presentation.trackerDetails.TrackerDetailViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -27,4 +29,5 @@ val modules = module {
     viewModelOf(::HomePageViewModel)
     viewModelOf(::SelectedDeviceViewModel)
     viewModelOf(::TrackerDetailViewModel)
+    viewModelOf(::DatabaseDeviceViewModel)
 }

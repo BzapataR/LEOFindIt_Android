@@ -12,8 +12,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.Left
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.Right
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -36,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -50,16 +53,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.example.leofindit.controller.BtHelper
-import com.example.leofindit.controller.LocationHelper
-import com.example.leofindit.deviceScanner.presentation.SelectedDeviceViewModel
-import com.example.leofindit.deviceScanner.presentation.homePage.HomePageRoot
-import com.example.leofindit.deviceScanner.presentation.homePage.HomePageViewModel
 import com.example.leofindit.Intro.presentation.introduction.BluetoothPermission
 import com.example.leofindit.Intro.presentation.introduction.Introduction
 import com.example.leofindit.Intro.presentation.introduction.LocationAccess
 import com.example.leofindit.Intro.presentation.introduction.NotificationPermission
 import com.example.leofindit.Intro.presentation.introduction.PermissionsDone
+import com.example.leofindit.controller.BtHelper
+import com.example.leofindit.controller.LocationHelper
+import com.example.leofindit.deviceScanner.presentation.SelectedDeviceViewModel
+import com.example.leofindit.deviceScanner.presentation.databaseDevices.DatabaseDeviceRoot
+import com.example.leofindit.deviceScanner.presentation.databaseDevices.DatabaseDeviceViewModel
+import com.example.leofindit.deviceScanner.presentation.homePage.HomePageRoot
+import com.example.leofindit.deviceScanner.presentation.homePage.HomePageViewModel
 import com.example.leofindit.deviceScanner.presentation.settings.AppInfo
 import com.example.leofindit.deviceScanner.presentation.settings.Settings
 import com.example.leofindit.deviceScanner.presentation.trackerDetails.TrackerDetailViewModel
@@ -76,11 +81,10 @@ import org.koin.compose.viewmodel.koinViewModel
 
 const val BLUETOOTH_PERMISSIONS_REQUEST_CODE = 101
 val Context.dataStore : DataStore<Preferences> by preferencesDataStore(name = "App Settings")
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 
 class MainActivity : ComponentActivity() {
     val Context.dataStore : DataStore<Preferences> by preferencesDataStore(name = "First Launch")
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("SupportAnnotationUsage", "MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
          var keepSplashScreenOn = true
@@ -153,19 +157,17 @@ fun MainNavigator(
     NavHost(
         navController = navigator,
         startDestination = MainNavigation.MainNavGraph,
-        enterTransition = { EnterTransition.None },
-        exitTransition = { ExitTransition.None }
+        enterTransition = { slideIntoContainer(Left, tween(500)) },
+        exitTransition = { slideOutOfContainer(Left, tween(500)) },
+        popEnterTransition = { slideIntoContainer(Right, tween(500)) },
+        popExitTransition = { slideOutOfContainer(Right, tween(500)) }
     ) {
         navigation<MainNavigation.MainNavGraph>(
             startDestination = MainNavigation.ManualScan
         ) {
 
-            composable<MainNavigation.ManualScan>(
-                popExitTransition = { slideOutHorizontally{ fullWidth -> fullWidth } },
-                exitTransition = { slideOutHorizontally{fullWidth -> fullWidth} },
-                popEnterTransition = { fadeIn() },
-                enterTransition = { slideInHorizontally{fullWidth -> fullWidth} }
-            ) {
+            composable<MainNavigation.ManualScan>
+            {
                 val homePageViewModel = koinViewModel<HomePageViewModel>()
                 val selectedDeviceViewModel =
                     it.sharedKoinViewModel<SelectedDeviceViewModel>(navigator)
@@ -185,15 +187,12 @@ fun MainNavigator(
                 )
             }
 
-            composable<MainNavigation.TrackerDetails>(
-                enterTransition = { slideInHorizontally { initialOffset -> initialOffset } },
-                exitTransition = { slideOutHorizontally { initialOffset -> initialOffset } },
-            ) {
+            composable<MainNavigation.TrackerDetails> {
                 val trackerDetailViewModel = koinViewModel<TrackerDetailViewModel>()
                 val selectedDeviceViewModel =
                     it.sharedKoinViewModel<SelectedDeviceViewModel>(navigator)
                 val selectedDevice
-                    by selectedDeviceViewModel.selectedDevice.collectAsStateWithLifecycle()
+                        by selectedDeviceViewModel.selectedDevice.collectAsStateWithLifecycle()
                 LaunchedEffect(selectedDevice) {
                     selectedDevice.let {
                         selectedDeviceViewModel.onSelectedDevice(it)
@@ -201,45 +200,41 @@ fun MainNavigator(
                 }
                 TrackerDetailsRoot(
                     viewModel = trackerDetailViewModel,
-                    goBack = {navigator.popBackStack()}
-                )
-            }
-
-            composable<MainNavigation.Settings>(
-                exitTransition = { slideOutHorizontally{fullWidth -> fullWidth} },
-                popExitTransition = { slideOutHorizontally {fullWidth -> fullWidth} },
-                popEnterTransition = { slideInHorizontally {fullWidth -> fullWidth} },
-                enterTransition = { slideInHorizontally{fullWidth -> fullWidth} }
-            ) {
-                Settings(
-                    goBack = { navigator.popBackStack() },
-                    toAppInfo = {navigator.navigate(MainNavigation.AppInfo)} ,
-                    //toSavedDevices = TODO()
-                )
-            }
-
-            composable<MainNavigation.MarkedDevice>(
-                exitTransition = { slideOutHorizontally{fullWidth -> fullWidth} },
-                popExitTransition = { slideOutHorizontally {fullWidth -> fullWidth} },
-                popEnterTransition = { slideInHorizontally {fullWidth -> fullWidth} },
-                enterTransition = { slideInHorizontally{fullWidth -> fullWidth} }
-            ) {
-            }
-
-            composable<MainNavigation.AppInfo>(
-                exitTransition = { slideOutHorizontally{fullWidth -> fullWidth} },
-                popExitTransition = { slideOutHorizontally {fullWidth -> fullWidth} },
-                popEnterTransition = { slideInHorizontally {fullWidth -> fullWidth} },
-                enterTransition = { slideInHorizontally{fullWidth -> fullWidth} }
-            ) {
-                AppInfo(
                     goBack = { navigator.popBackStack() }
                 )
             }
 
+            composable<MainNavigation.Settings>{
+                Settings(
+                    goBack = { navigator.popBackStack() },
+                    toAppInfo = { navigator.navigate(MainNavigation.AppInfo) },
+                    toSavedDevices = { navigator.navigate(MainNavigation.MarkedDevice) }
+                )
             }
+            composable<MainNavigation.AppInfo> {
+                AppInfo(
+                    goBack = { navigator.popBackStack() }
+                )
+            }
+            composable<MainNavigation.MarkedDevice> {
+                val databaseViewModel = koinViewModel<DatabaseDeviceViewModel>()
+                val selectedDeviceViewModel =
+                    it.sharedKoinViewModel<SelectedDeviceViewModel>(navigator)
+                DatabaseDeviceRoot(
+                    viewModel = databaseViewModel,
+                    goBack = { navigator.popBackStack() },
+                    onDeviceClicked = { device ->
+                        selectedDeviceViewModel.onSelectedDevice(device)
+                        navigator.navigate(
+                            MainNavigation.TrackerDetails(address = device.deviceAddress)
+                        )
+                    }
+                )
+            }
+
         }
     }
+}
 
 @Composable // to share view models between composable
 private inline fun <reified T: ViewModel> NavBackStackEntry.sharedKoinViewModel(
@@ -253,59 +248,12 @@ private inline fun <reified T: ViewModel> NavBackStackEntry.sharedKoinViewModel(
         viewModelStoreOwner = parentEntry
     )
 }
-//    NavHost(
-//        navController = mainNavigator,
-//        startDestination = "Manual Scan"
-//    ) {
-//        composable("Manual Scan")  {
-//            ManualScanning(
-//                navController = mainNavigator, viewModel = viewModel,
-//                selectedDeviceViewModel = TODO()
-//            )
-//        }
-//        composable ("Tracker Details/{address}", arguments = listOf(navArgument("address") {type =
-//            NavType.StringType}))
-//        { backStackEntry ->
-//            val  address = backStackEntry.arguments?.getString("address") ?:return@composable
-//            TrackerDetails(
-//                navController = mainNavigator,
-//                viewModel = viewModel,
-//                address = address,
-//                dbViewModel = dbViewModel
-//            )
-//        }
-//        composable("Precision Finding/{address}", arguments = listOf(navArgument("address") { type = NavType.StringType })
-//        ) { backStackEntry ->
-//            val address = backStackEntry.arguments?.getString("address") ?: return@composable
-//            PrecisionFinding(navController = mainNavigator, viewModel = viewModel, address = address)
-//        }
-//        composable("Settings") {
-//            Settings(navController = mainNavigator)
-//        }
-//        composable ("App info") {
-//            AppInfo(navController = mainNavigator)
-//        }
-//        composable("Observe Tracker") {
-//            ObserveTracker(navController = mainNavigator)
-//        }
-//        composable ("Marked Devices"){
-//            MarkedDevices(navController = mainNavigator, dbViewModel=dbViewModel)
-//        }
-//        composable("Device From Db/{address}", arguments = listOf(navArgument("address"){type =
-//            NavType.StringType})
-//        ) { backStackEntry ->
-//            val address = backStackEntry.arguments?.getString("address") ?: return@composable
-//            DeviceByDb(navController = mainNavigator, dbViewModel=dbViewModel, address = address)
-//        }
-//    }
-//}
-//
-
 ///*********************************************************************************
 // *                   NavHost used for introduction only
 // *                   used once on first launch. Only add
 // *                   for one time pages.
 // *********************************************************************************/
+
 @Composable
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -323,7 +271,7 @@ fun IntroNavigator(introNavCtrl: NavHostController, onFinish: () -> Unit) {
                 popEnterTransition = { slideInHorizontally { fullWidth -> fullWidth } },
                 enterTransition = { slideInHorizontally { fullWidth -> fullWidth } }
             ) {
-                Introduction({ introNavCtrl.navigate(IntroNav.LocationPermission) })
+                Introduction { introNavCtrl.navigate(IntroNav.LocationPermission) }
             }
             composable<IntroNav.LocationPermission>(
                 exitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
@@ -331,7 +279,7 @@ fun IntroNavigator(introNavCtrl: NavHostController, onFinish: () -> Unit) {
                 popEnterTransition = { slideInHorizontally { fullWidth -> fullWidth } },
                 enterTransition = { slideInHorizontally { fullWidth -> fullWidth } }
             ) {
-                LocationAccess({introNavCtrl.navigate(IntroNav.BluetoothPermission) })
+                LocationAccess { introNavCtrl.navigate(IntroNav.BluetoothPermission) }
             }
             composable<IntroNav.BluetoothPermission>(
                 exitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
@@ -350,7 +298,7 @@ fun IntroNavigator(introNavCtrl: NavHostController, onFinish: () -> Unit) {
                 popEnterTransition = { slideInHorizontally { fullWidth -> fullWidth } },
                 enterTransition = { slideInHorizontally { fullWidth -> fullWidth } }
             ) {
-                NotificationPermission({ introNavCtrl.navigate(IntroNav.PermissionsDone) })
+                NotificationPermission { introNavCtrl.navigate(IntroNav.PermissionsDone) }
             }
             composable<IntroNav.PermissionsDone>(
                 exitTransition = { slideOutHorizontally { fullWidth -> fullWidth } },
@@ -358,7 +306,7 @@ fun IntroNavigator(introNavCtrl: NavHostController, onFinish: () -> Unit) {
                 popEnterTransition = { slideInHorizontally { fullWidth -> fullWidth } },
                 enterTransition = { slideInHorizontally { fullWidth -> fullWidth } }
             ) {
-                PermissionsDone({onFinish()})
+                PermissionsDone { onFinish() }
             }
         }
     }

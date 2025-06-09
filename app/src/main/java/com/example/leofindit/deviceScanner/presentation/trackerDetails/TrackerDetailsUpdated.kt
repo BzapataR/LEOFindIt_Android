@@ -1,5 +1,7 @@
 package com.example.leofindit.deviceScanner.presentation.trackerDetails
 
+import android.content.ClipData
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -10,10 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.AlertDialog
@@ -22,7 +22,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -30,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,19 +36,27 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.example.leofindit.R
 import com.example.leofindit.deviceScanner.presentation.universalComponents.RoundedListItem
-import com.example.leofindit.ui.theme.Background
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.GoldPrimaryDull
 import com.example.leofindit.ui.theme.OnSurface
 import com.example.leofindit.ui.theme.Surface
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.core.net.toUri
+import com.example.leofindit.ui.theme.LeoFindItTheme
+import java.lang.Exception
 
 @Composable
 fun TrackerDetailsRoot(
@@ -58,11 +64,29 @@ fun TrackerDetailsRoot(
     goBack : () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val localClipboard = LocalClipboard.current
+    val context = LocalContext.current
     TrackerDetails(
         state = state,
         onAction = { action ->
             when (action) {
                 is TrackerDetailActions.GoBack -> goBack()
+                is TrackerDetailActions.Copy -> {
+                   val clipData = ClipData.newPlainText("Copy Value", action.CopyVal)
+                    viewModel.viewModelScope.launch {localClipboard.setClipEntry(ClipEntry(clipData)) }
+                }
+                is TrackerDetailActions.DisplayToast -> {
+                    Toast.makeText(context, action.DisplayVal, Toast.LENGTH_LONG).show()
+                }
+                is TrackerDetailActions.ToManufacturerWebsite -> {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, state.manufacturerSite.toUri())
+                        context.startActivity(intent)
+                    }
+                    catch(_: Exception) {
+                        Toast.makeText(context, "Error! Cannot open page", Toast.LENGTH_SHORT).show()
+                    }
+                }
                 else -> Unit
             }
                 viewModel.onAction(action)
@@ -75,6 +99,7 @@ fun TrackerDetails(
     state : TrackerDetailsState,
     onAction : (TrackerDetailActions) -> Unit
 ) {
+    Log.i("Tracker Details", "Name: ${state.deviceName} Time: ${state.time} isSus: ${state.isSus}")
     LazyColumn (modifier = Modifier.fillMaxSize()){
         item {
             Spacer(modifier = Modifier.size(12.dp))
@@ -96,7 +121,7 @@ fun TrackerDetails(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = state.nickName,
+                    text = state.nickName.takeUnless { it == "null" } ?: state.deviceName,
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold
                     ),
@@ -137,7 +162,6 @@ fun TrackerDetails(
                             .fillMaxWidth()
                     ) {
                         val options = listOf("Safe", "Neutral", "Suspicious")
-                        var selectedIndex = state.indexSelected
                         options.forEachIndexed { index, label ->
                             SegmentedButton(
                                 shape = SegmentedButtonDefaults.itemShape(
@@ -148,26 +172,22 @@ fun TrackerDetails(
                                     val selectedIndex = index
                                         when (selectedIndex) {
                                             0 -> {
-                                                onAction(TrackerDetailActions.OnIndexChange(0))
                                                 onAction(TrackerDetailActions.MarkSafe)
-                                                Log.i("Update Device Call", "Device set to safe")
                                             }
                                             1-> {
-                                                onAction(TrackerDetailActions.OnIndexChange(1))
-                                                state.showDeletionDialog
+                                                onAction(TrackerDetailActions.ShowDeleteDialog)
                                             }
 
                                             2 -> {
-                                                onAction(TrackerDetailActions.OnIndexChange(2))
                                                 onAction(TrackerDetailActions.MarkSus)
-                                                Log.i(
-                                                    "Update Device Call",
-                                                    "Device set to suspicious"
-                                                )
                                             }
                                     }
                                 },
-                                selected = index == selectedIndex,
+                                selected = index == when(state.isSus) {
+                                    false -> 0
+                                    null -> 1
+                                    true -> 2
+                                },
                                 colors = SegmentedButtonDefaults.colors(
                                     activeContentColor = GoldPrimary,
                                     activeContainerColor = GoldPrimary.copy(alpha = 0.1f),
@@ -194,40 +214,21 @@ fun TrackerDetails(
                             leadingText = "Device Address",
                             trailingText = state.address,
                             trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
-                            onClick = {
-//                                clipboardManager.setText(AnnotatedString(device.deviceAddress.toString()))
-//                                Toast.makeText(
-//                                    context,
-//                                    "Device address copied",
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
-                            }
+                            onClick = { onAction(TrackerDetailActions.Copy(state.address)) }
                         )
                         RoundedListItem(
                             leadingText = "Manufacturer",
                             trailingText = "todo add ",
                             trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
                             onClick = {
-//                                clipboardManager.setText(AnnotatedString(device.deviceManufacturer.toString()))
-//                                Toast.makeText(
-//                                    context,
-//                                    "Device manufacturer copied",
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
+                                onAction(TrackerDetailActions.Copy("todo value"))
                             }
                         )
                         RoundedListItem(
                             leadingText = "Device type",
                             trailingText = state.deviceType,
                             trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
-                            onClick = {
-//                                clipboardManager.setText(AnnotatedString(state.deviceType))
-//                                Toast.makeText(
-//                                    context,
-//                                    "Device Type copied",
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
-                            }
+                            onClick = { onAction(TrackerDetailActions.Copy(state.deviceType)) }
                         )
 
                     }
@@ -241,8 +242,8 @@ fun TrackerDetails(
                             .shadow(elevation = 24.dp),
                     ) {
                         // list of options
-//                    RoundedListItem(
-//                        onClick =  {
+                    RoundedListItem(
+                        onClick =  {
 //                            //crashed on precision finding due to selecting this and device not found
 //                            //find device on click here and make fail safe.
 //                            viewModel.startScanning(address)
@@ -258,13 +259,13 @@ fun TrackerDetails(
 //                                }
 //                            }
 //                            navController?.navigate(route = "Precision Finding/${address}")
-//                        },
-//                        color = Color(0xff007aff),
-//                        icon = ImageVector.vectorResource(R.drawable.outline_explore_24),
-//                        leadingText = "Locate Tracker", trailingText = "Nearby"
-//                    )
+                        },
+                        color = Color(0xff007aff),
+                        icon = ImageVector.vectorResource(R.drawable.outline_explore_24),
+                        leadingText = "Locate Tracker", trailingText = "Nearby"
+                    )
 
-//                    HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
+                    HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
 //
 //                    RoundedListItem( //todo if map added add within here
 //                        onClick = { navController?.navigate("Observe Tracker") },
@@ -302,7 +303,7 @@ fun TrackerDetails(
                         // get database going with from device manufacturer and link with a website
                         // Right now shows generic website to disable device
                         RoundedListItem(
-                            onClick = { /*context.startActivity(webIntent)*/ },
+                            onClick = { onAction(TrackerDetailActions.ToManufacturerWebsite) },
                             icon = ImageVector.vectorResource(R.drawable.outline_info_24),
                             color = Color.Green,
                             leadingText = "Manufacture's Website",
@@ -324,7 +325,7 @@ fun TrackerDetails(
     //                    Nickname dialog Logic
     //********************************************************************************
     if (state.showNickNameDialog) {
-        var tempNickName : String = state.nickName
+        var tempNickName : String = state.nickName.toString()
         AlertDialog(
             onDismissRequest = { onAction(TrackerDetailActions.ShowEditDialog) },
             title = {
@@ -362,6 +363,12 @@ fun TrackerDetails(
          */
     if (state.showDeletionDialog) {
         AlertDialog(
+            icon = {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.delete_24),
+                    contentDescription = "Deletion"
+                )
+            },
             onDismissRequest = { onAction(TrackerDetailActions.ShowDeleteDialog ) },
             title = {
                 Text("Data Deletion", style = MaterialTheme.typography.titleLarge)
@@ -370,6 +377,15 @@ fun TrackerDetails(
                 Text("This action will remove the device data from your phones storage")
             },
             confirmButton = {
+                TextButton(onClick = {
+                    onAction(TrackerDetailActions.MarkNeutral)
+                    onAction(TrackerDetailActions.ShowDeleteDialog)
+                    //Toast.makeText(, "Device Deleted", Toast.LENGTH_SHORT).show()
+                }) {
+                    Text(text = "Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
                 TextButton(
                     onClick = {
                         onAction(TrackerDetailActions.ShowDeleteDialog)
@@ -377,18 +393,17 @@ fun TrackerDetails(
                 ) {
                     Text("Cancel")
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    onAction(TrackerDetailActions.MarkNeutral)
-                    //selectedIndex = pendingIndex
-                    onAction(TrackerDetailActions.ShowDeleteDialog)
-                    //Toast.makeText(context, "Device Deleted", Toast.LENGTH_SHORT).show()
-                }) {
-                    Text("Delete")
-                }
-
             }
         )
+    }
+}
+@Preview(
+    device = "spec:width=1080px,height=2424px,navigation=buttons", showSystemUi = false, showBackground = true,
+    backgroundColor = 0xfffaa
+)
+@Composable
+fun TrackerPreview() {
+    LeoFindItTheme {
+        TrackerDetails(state = TrackerDetailsState(), onAction = {})
     }
 }

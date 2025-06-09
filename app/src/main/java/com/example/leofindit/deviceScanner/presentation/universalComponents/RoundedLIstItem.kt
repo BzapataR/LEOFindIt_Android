@@ -43,7 +43,7 @@ fun RoundedListItem(
     leadingText: String,
     trailingText: String = "",
     trailingIcon: ImageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, // Icon at the end with default
-    customTrailingContent : @Composable (() -> Unit)? = null, // used for anything, in this case added a switch
+    customTrailingContent : @Composable ( () -> Unit)? = null, // used for anything, in this case added a switch
     iconModifier: Modifier = Modifier, // mainly used for icon size
 ) {
     // Manufacturer name was too long used to shrink

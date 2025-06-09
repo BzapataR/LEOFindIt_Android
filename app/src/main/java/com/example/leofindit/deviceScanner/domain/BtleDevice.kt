@@ -1,7 +1,7 @@
 package com.example.leofindit.deviceScanner.domain
 
 import android.util.Log
-
+import androidx.compose.runtime.Immutable
 
 data class BtleDevice(
     val deviceType: String,

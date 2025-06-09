@@ -25,8 +25,5 @@ sealed interface MainNavigation {
     data object ObserveTracker : MainNavigation
 
     @Serializable
-    data class DeviceFromDb(val address : String) : MainNavigation
-
-    @Serializable
     data object MarkedDevice : MainNavigation
 }

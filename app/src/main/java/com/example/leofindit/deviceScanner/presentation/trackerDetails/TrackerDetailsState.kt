@@ -8,12 +8,11 @@ data class TrackerDetailsState (
     val time : String = "",
     val address : String = "",
     val deviceType : String = "",
-    val nickName : String = "",
+    val nickName : String? = null,
     val manufacturerSite : String = "https://www.google.com", // todo replace with correct site
     val isSus : Boolean? = null,
     val isLoading : Boolean = true,
     val error : String? = null,
-    val indexSelected : Int = 1,
     val showDeletionDialog : Boolean = false,
     val showNickNameDialog: Boolean = false
 

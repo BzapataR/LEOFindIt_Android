@@ -1,8 +1,6 @@
 package com.example.leofindit.deviceScanner.data
 
-import android.Manifest
-import androidx.annotation.RequiresPermission
-import androidx.room.coroutines.createFlow
+import android.util.Log
 import androidx.sqlite.SQLiteException
 import com.example.leofindit.deviceScanner.data.database.BTLEDeviceDao
 import com.example.leofindit.deviceScanner.data.database.BTLEDeviceEntity
@@ -10,45 +8,62 @@ import com.example.leofindit.deviceScanner.domain.BtleDevice
 import com.example.leofindit.deviceScanner.domain.DataRepository
 import com.example.leofindit.errors.DataError
 import com.example.leofindit.errors.DataError.DbError
+import com.example.leofindit.errors.DataError.RepositoryError
 import com.example.leofindit.errors.EmptyResult
 import com.example.leofindit.errors.Result
 import com.example.leofindit.errors.onError
 import com.example.leofindit.errors.onSuccess
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEmpty
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class DeviceRepository(
     private val dao : BTLEDeviceDao,
-    private val scanner : DeviceScanner
+    private val scanner : DeviceScanner,
 ) : DataRepository{
+    val tag = "Device Repository"
 
+    override val _observableDevices = MutableStateFlow(emptyList<BtleDevice>())
+    override val observableDevices = _observableDevices.asStateFlow()
+    val repositoryScope = CoroutineScope(Dispatchers.IO)
+
+    init {
+        repositoryScope.launch {
+           val devicesFromDb = dao.getAllDevices().first()
+               .map { it.toBtleDevice() }
+            _observableDevices.value = devicesFromDb
+            Log.i("observable device update" , "${_observableDevices.value}")
+        }
+    }
 
     override fun startScanning(): Result<Flow<List<BtleDevice>>, DataError.ScanningError> {
         val dataBaseResult: Flow<List<BTLEDeviceEntity>> = dao.getAllDevices()
         val scannerResult: Flow<List<BtleDevice>> = scanner.scanResults
         scanner.startScanning().onSuccess {
-            val combinedFlow : Flow<List<BtleDevice>> = combine(dataBaseResult, scannerResult) { dbEntity, scannerResult ->
+            val combinedFlow : Flow<List<BtleDevice>> = combine(
+                dataBaseResult.distinctUntilChanged(),
+                scannerResult.distinctUntilChanged()
+            ) { dbEntity, scannerResult ->
                 scannerResult.map { scanned->
                     val dbMatch = dbEntity.find{ it.deviceAddress == scanned.deviceAddress }
 
                     if (dbMatch != null) {
-                        coroutineScope {
-                            launch {
-                                val updatedTimeStamp = dbMatch.timestamp.toMutableList().apply {
-                                    add(scanned.timeStamp)
-                                }
-                                val updatedEntity = dbMatch.copy(timestamp = updatedTimeStamp)
-                                dao.upsert(updatedEntity)
+                        repositoryScope.launch {
+                            val updatedTimeStamp = dbMatch.timestamp.toMutableList().apply {
+                                if(!contains(scanned.timeStamp)) { add(scanned.timeStamp) }
                             }
+                            val updatedEntity = dbMatch.copy(timestamp = updatedTimeStamp)
+                            dao.upsert(updatedEntity)
                         }
                         scanned.copy(
                             isSuspicious = dbMatch.isSuspicious,
@@ -59,6 +74,12 @@ class DeviceRepository(
                         scanned
                 }
             }
+            repositoryScope.launch {
+                combinedFlow.collect { deviceList ->
+                    _observableDevices.value = deviceList
+                }
+            }
+
             return Result.Success(combinedFlow)
         }
             .onError {error ->
@@ -73,31 +94,6 @@ class DeviceRepository(
         return scanner.stopScanning()
     }
 
-    suspend fun combinedList(scannedValue : BtleDevice?, dbValue : BTLEDeviceEntity?) : BtleDevice? {
-        if (scannedValue == null && dbValue == null){
-            return null
-        }
-        if (scannedValue != null && dbValue != null) {
-            coroutineScope {
-                launch {
-                    val updatedTimeStamp = dbValue.timestamp.toMutableList().apply {
-                        add(scannedValue.timeStamp)
-                    }
-                    val updatedEntity = dbValue.copy(timestamp = updatedTimeStamp)
-                    dao.upsert(updatedEntity)
-                }
-            }
-            scannedValue.copy(
-                isSuspicious = dbValue.isSuspicious,
-                nickName = dbValue.deviceNickname,
-            )
-        }
-        return scannedValue?: dbValue?.toBtleDevice()
-
-
-
-    }
-
 
     override suspend fun getDataBaseDevices(): Flow<List<BtleDevice>> {
         return dao.getAllDevices().map { entityList ->
@@ -105,13 +101,13 @@ class DeviceRepository(
         }
     }
 
-    override suspend fun getWhiteList(): Flow<List<BtleDevice>> {
+    override fun getWhiteList(): Flow<List<BtleDevice>> {
         return dao.getSafeDevices().map{list ->
             list.map { it.toBtleDevice() }
         }
     }
 
-    override suspend fun getBlackList(): Flow<List<BtleDevice>> {
+    override fun getBlackList(): Flow<List<BtleDevice>> {
         return dao.getSusDevices().map { list->
             list.map { it.toBtleDevice() }
         }
@@ -134,56 +130,101 @@ class DeviceRepository(
         dao.deleteAll()
     }
 
-    override fun getDeviceByAddress(address: String): Result<Flow<BtleDevice>, DataError.RepositoryError> {
-        var notFound: Boolean = false
-        val scanListDevice = scanner.findDeviceByAddress(address)
-        val dataBaseDevice = dao.getDeviceByAddress(address)
-        val foundDevice = combine(scanListDevice, dataBaseDevice ) { scanResult, dbResult ->
-            combinedList(scanResult, dbResult)
-        }.onEmpty { notFound = true }.filterNotNull()
-        if(notFound) {
-            return Result.Error(DataError.RepositoryError.DEVICE_NOT_FOUND)
+    override fun getDeviceByAddress(address: String): BtleDevice? {
+        return _observableDevices.value.find { it.deviceAddress == address }
+    }
+
+    override fun getDeviceAsFlow(address: String): Flow<BtleDevice?> {
+        return _observableDevices.map { deviceList ->
+            deviceList.find { it.deviceAddress == address }
         }
-        else return Result.Success(foundDevice)
+            .distinctUntilChanged()
     }
 
     override suspend fun editNickName(address: String, newNickName: String) : EmptyResult<DbError> {
-        var databaseDevice = dao.getDeviceByAddress(address).firstOrNull()
-        if(databaseDevice!= null) {
+        val databaseDevice = dao.getDeviceByAddress(address)
+        if(databaseDevice != null) {
             try {
                 dao.upsert(databaseDevice.copy(deviceNickname = newNickName))
             } catch (_: SQLiteException) {
                 return Result.Error(DbError.DISK_FULL)
             }
         }
-        scanner.mutateDeviceNickName(address = address, newNickName = newNickName)
+        _observableDevices.update { currentList->
+            currentList.map { deviceInList ->
+                if(deviceInList.deviceAddress == address) {
+                    return@map deviceInList.copy(nickName = newNickName)
+                }
+                else {
+                    return@map deviceInList
+                }
+            }
+        }
         return Result.Success(Unit)
     }
 
     override suspend fun editDeviceSus(
         address: String,
         newSusValue: Boolean?
-    ): EmptyResult<DbError> {
-        var databaseDevice = dao.getDeviceByAddress(address).firstOrNull()
-        if(databaseDevice!= null) {
-            try {
-                if (newSusValue == null) { dao.delete(databaseDevice)} // we don't want to store neutral values
-                dao.upsert(databaseDevice.copy(isSuspicious = newSusValue))
-            } catch (_: SQLiteException) {
-                return Result.Error(DbError.DISK_FULL)
+    ): EmptyResult<DataError> {
+        var databaseDevice = dao.getDeviceByAddress(address)
+        if (databaseDevice != null) {
+            if (newSusValue == null) {
+                dao.delete(databaseDevice)
+                return Result.Success(Unit)
+            } // we don't want to store neutral values
+            else {
+                try {
+                    dao.update(databaseDevice.copy(isSuspicious = newSusValue))
+                } catch (_: SQLiteException) {
+                    return Result.Error(DbError.DISK_FULL)
+                }
             }
         }
-        return Result.Success(Unit)
+        if (getDeviceByAddress(address) != null) {
+            if (newSusValue != null) {
+                try {
+                    dao.insert(
+                        getDeviceByAddress(address)!!.toEntity().copy(isSuspicious = newSusValue)
+                    )
+                } catch (_: SQLiteException) {
+                    return Result.Error(DbError.DISK_FULL)
+                }
+                _observableDevices.update { currentList ->
+                    currentList.map { deviceInList ->
+                        if (deviceInList.deviceAddress == address) {
+                            return@map deviceInList.copy(isSuspicious = newSusValue)
+                        } else {
+                            return@map deviceInList
+                        }
+                    }
+                }
+            }
+            Log.i("newDeviceValue", "${getDeviceByAddress(address)?.isSuspicious}")
+                return Result.Success(Unit)
+        }
+        else if(getDeviceByAddress(address) == null) {
+            return Result.Error(RepositoryError.DEVICE_NOT_FOUND)
+        }
+        return Result.Error(DbError.UNKNOWN)
     }
+
+
     fun timeStampFormat(timeStamp: Long): String {
         val timeDiffMillis = System.currentTimeMillis() - timeStamp
-        val hours = TimeUnit.MILLISECONDS.toHours(timeDiffMillis)
-        val minutes =
-            TimeUnit.MILLISECONDS.toMinutes(timeDiffMillis) - TimeUnit.HOURS.toMinutes(hours)
-        val seconds =
-            TimeUnit.MILLISECONDS.toSeconds(timeDiffMillis) - TimeUnit.MINUTES.toSeconds(minutes)
+        if (timeStamp > System.currentTimeMillis())
+            return "Now"
+        // Calculate total seconds, minutes, and hours from the difference
+        val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(timeDiffMillis)
+        val totalMinutes = TimeUnit.MILLISECONDS.toMinutes(timeDiffMillis)
+        val totalHours = TimeUnit.MILLISECONDS.toHours(timeDiffMillis)
 
-        return String.format(Locale.US,"%02d:%02d:%02d", hours, minutes, seconds)
+        // Calculate the components for HH:MM:SS format
+        val hoursComponent = totalHours
+        val minutesComponent = totalMinutes % 60 // Minutes in the current hour (0-59)
+        val secondsComponent = totalSeconds % 60 // Seconds in the current minute (0-59)
+
+        return String.format(Locale.US,"%02d:%02d:%02d", hoursComponent, minutesComponent, secondsComponent)
     }
 
 

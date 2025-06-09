@@ -107,7 +107,7 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
             autoHideJob?.cancel()
         }
     }
-    Box() {
+    Box {
         LazyColumn(
             state = lazyListState,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -140,7 +140,7 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                                 .size(24.dp)
                         ) {
                             Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.stop_24dp_e3e3e3_fill1_wght400_grad0_opsz24),
+                                imageVector = ImageVector.vectorResource(R.drawable.stop_24_fill),
                                 contentDescription = null,
                                 tint = if (!state.isScanning) Color.Black else GoldPrimary
                             )
@@ -238,20 +238,22 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                         itemsIndexed(state.unnamedDevices) { index, device ->
                             DeviceListEntry(
                                 device = device,
-                                onListItemClick = { onAction(HomePageActions.onDeviceClick(device)) })
+                                onListItemClick = {
+                                    onAction(
+                                        HomePageActions.onDeviceClick(
+                                            device
+                                        )
+                                    )
+                                })
                             Spacer(modifier = Modifier.size(8.dp))
                         }
+
                     }
                 }
         }
         FAB(
-            visible = fabVisible,
-            onClick = {
-                coroutineScope.launch {
-                    lazyListState.animateScrollToItem(0)
-                }
-            },
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier.align(Alignment.BottomCenter),
+            lazyListState = lazyListState
         )
     }
 }

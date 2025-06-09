@@ -33,7 +33,7 @@ interface BTLEDeviceDao {
     fun getAllDevices(): Flow<List<BTLEDeviceEntity>>
 
     @Query("SELECT * FROM btle_devices WHERE deviceAddress = :deviceAddress")
-    fun getDeviceByAddress(deviceAddress: String): Flow<BTLEDeviceEntity?>
+    suspend fun getDeviceByAddress(deviceAddress: String): BTLEDeviceEntity?
 
     @Query("Select * FROM btle_devices WHERE `is Suspicious` = False")
     fun getSafeDevices(): Flow<List<BTLEDeviceEntity>>

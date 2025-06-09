@@ -10,6 +10,7 @@ import com.example.leofindit.errors.onSuccess
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -22,13 +23,13 @@ class HomePageViewModel(
     private var observeDeviceListJob : Job? = null
 
     private val _state = MutableStateFlow(HomePageState())
-    val state = _state
+    val state = _state.asStateFlow()
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000L),
             _state.value
         )
-
+    private val deviceList = dataRepository.observableDevices
     fun onAction(action: HomePageActions) {
         when (action) {
             is HomePageActions.onDeviceClick -> { /* pass logic from main activity to navigate*/}
@@ -51,7 +52,6 @@ class HomePageViewModel(
                 val (unnamed, named) = deviceList
                     .sortedByDescending{ it.signalStrength }
                     .partition{ it.isUnNamed() }
-                Log.i("status", "unnamed size: ${unnamed.size} named: ${named.size}")
                 _state.update {
                     it.copy(
                         deviceList = deviceList,
