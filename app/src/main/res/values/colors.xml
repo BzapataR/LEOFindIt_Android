@@ -18,5 +18,6 @@
     <color name="OnPrimary">#FF412D00</color>
     <color name="Surface">#FF4C4639</color>
     <color name="OnSurface">#FFCFC5B4</color>
+    <color name="Error">#FF5449</color>
 
 </resources>

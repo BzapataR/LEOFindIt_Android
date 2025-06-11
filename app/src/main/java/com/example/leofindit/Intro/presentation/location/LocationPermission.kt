@@ -1,6 +1,8 @@
-package com.example.leofindit.Intro.presentation.introduction
+package com.example.leofindit.Intro.presentation.location
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
@@ -20,15 +22,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.leofindit.controller.LocationHelper
 import com.example.leofindit.controller.LocationHelper.checkingLocationEnabledState
 import com.example.leofindit.controller.LocationHelper.rememberLocationPermissionState
@@ -39,6 +42,8 @@ import com.example.leofindit.ui.theme.LeoFindItTheme
 import com.example.leofindit.ui.theme.OnSurface
 import com.example.leofindit.ui.theme.Surface
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+
 /*********************************************************************************
  *                   Location init page
  *********************************************************************************/
@@ -104,22 +109,23 @@ fun LocationAccess(toNextComposable : ()-> Unit) {
             modifier = Modifier.fillMaxWidth(.75f),
             colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = OnSurface)
 
-
         ) {
-            Text(
-               text =  when {
-                    !permissionsState.allPermissionsGranted -> "Request Permission"
-                    !isLocationOn -> "Turn on Location"
+               when {
+                   !permissionsState.permissions.first { state ->
+                       state.permission == Manifest.permission.ACCESS_FINE_LOCATION
+                   }
+                       .status.isGranted -> Text("Please Grant Precise Location")
+
+                   !permissionsState.allPermissionsGranted -> Text("Request Permission")
+
+                    !isLocationOn -> Text("Turn on Location")
+
                     permissionsState.allPermissionsGranted && LocationHelper.isLocationServiceEnabled() ->
-                        "Continue"
+                        Text("Continue")
                    else -> {"error"}
                }
-            )
         }
-
-
     }
-
 }
 @Preview
 @Composable

@@ -1,4 +1,4 @@
-package com.example.leofindit.Intro.presentation.introduction
+package com.example.leofindit.Intro.presentation.finishText
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

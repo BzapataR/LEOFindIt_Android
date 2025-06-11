@@ -1,13 +1,11 @@
-package com.example.leofindit.Intro.presentation.introduction
+package com.example.leofindit.Intro.presentation.bluetooth
 
-import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +30,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.leofindit.controller.BtHelper
 import com.example.leofindit.R
 import com.example.leofindit.ui.theme.GoldPrimary

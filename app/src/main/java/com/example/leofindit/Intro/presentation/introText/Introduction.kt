@@ -5,7 +5,7 @@
 //  Written by Brian Zapata Resendiz
 
 // IntroductionView.kt
-package com.example.leofindit.Intro.presentation.introduction
+package com.example.leofindit.Intro.presentation.introText
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,7 +30,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.leofindit.R
 import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.GoldPrimaryDull
