@@ -2,6 +2,7 @@ package com.example.leofindit.deviceScanner.presentation.databaseDevices
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -115,40 +116,24 @@ fun DatabaseDevice(
             }
             item { //WhiteList
 
-                Row(
-                    horizontalArrangement = Arrangement.Center, modifier = Modifier.clickable(
-                        onClick = { onAction(DatabaseDevicesActions.OpenWhiteList) }
-                    )) {
-                    Text(
-                        text = "White Listed Devices",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(Modifier.size(12.dp))
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.baseline_arrow_drop_down_24),
-                        contentDescription = "Drop Down",
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.rotate(
-                            degrees = rotationAngle(state.isWhiteListOpen)
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                    RoundedListItem(
+                        leadingText = "White Listed Devices",
+                        trailingIcon = ImageVector.vectorResource(R.drawable.baseline_arrow_drop_down_24),
+                        onClick = { onAction(DatabaseDevicesActions.OpenWhiteList) },
+                        iconModifier = Modifier.rotate(
+                            rotationAngle(state.isWhiteListOpen)
                         )
                     )
-//                    RoundedListItem(
-//                        leadingText = "White Listed Devices",
-//                        trailingIcon = ImageVector.vectorResource(R.drawable.baseline_arrow_drop_down_24),
-//                        onClick = { onAction(DatabaseDevicesActions.OpenWhiteList) },
-//                        iconModifier = Modifier.rotate(
-//                            rotationAngle(state.isWhiteListOpen)
-//                        )
-//                    )
-                }
-                AnimatedVisibility(state.isWhiteListOpen) {
-                    Column {
-                        state.whiteListDevice.forEach { device ->
-                            DeviceListEntry(
-                                { onAction(DatabaseDevicesActions.onDeviceClicked(device)) },
-                                device
-                            )
+                    AnimatedVisibility(state.isWhiteListOpen) {
+                        Spacer(modifier = Modifier.size(12.dp))
+                        Column {
+                            state.whiteListDevice.forEach { device ->
+                                DeviceListEntry(
+                                    { onAction(DatabaseDevicesActions.onDeviceClicked(device)) },
+                                    device
+                                )
+                            }
                         }
                     }
                 }
@@ -167,7 +152,9 @@ fun DatabaseDevice(
                         )
                     )
                     AnimatedVisibility(state.isBlackListOpen) {
-                        Column {
+                        Spacer(modifier = Modifier.size(12.dp))
+                        Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+                            Spacer(modifier = Modifier.size(12.dp))
                             state.blackListDevice.forEach { device ->
                                 DeviceListEntry(
                                     width = LocalConfiguration.current.screenWidthDp.dp,
