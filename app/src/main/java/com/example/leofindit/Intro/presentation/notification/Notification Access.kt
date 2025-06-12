@@ -27,11 +27,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leofindit.R
-import com.example.leofindit.ui.theme.GoldPrimary
-import com.example.leofindit.ui.theme.GoldPrimaryDull
+
 import com.example.leofindit.ui.theme.LeoFindItTheme
-import com.example.leofindit.ui.theme.OnSurface
-import com.example.leofindit.ui.theme.Surface
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -51,7 +48,7 @@ fun NotificationPermission(toNextComposable : () -> Unit ) {
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp)
     ) {
 
         Text(
@@ -59,12 +56,12 @@ fun NotificationPermission(toNextComposable : () -> Unit ) {
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
-            color = GoldPrimary
+            color = MaterialTheme.colorScheme.primary
         )
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.baseline_notifications_24),
             contentDescription = "Notification Logo",
-            tint = GoldPrimaryDull,
+            tint = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.size(100.dp)
         )
         Text(
@@ -72,7 +69,7 @@ fun NotificationPermission(toNextComposable : () -> Unit ) {
                     "enable notifications for Proximity Tracker",
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(start= 8.dp, end = 8.dp),
-            color = GoldPrimary
+            color = MaterialTheme.colorScheme.primary
         )
         Column {
             TextButton (
@@ -82,7 +79,7 @@ fun NotificationPermission(toNextComposable : () -> Unit ) {
             ) {
                 Text(
                     text = "Skip",
-                    color = GoldPrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             Button(
@@ -94,7 +91,6 @@ fun NotificationPermission(toNextComposable : () -> Unit ) {
                     }
 
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = OnSurface),
                 modifier = Modifier.fillMaxWidth(.75f)
 
             ) {
@@ -115,7 +111,7 @@ fun NotificationPermissionPreview() {
         Surface(
             modifier = Modifier.fillMaxSize()
         ) {
-            NotificationPermission({})
+            NotificationPermission{}
         }
     }
 }

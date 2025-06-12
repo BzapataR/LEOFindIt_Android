@@ -1,7 +1,6 @@
 package com.example.leofindit.Intro.presentation.location
 
 import android.content.Context
-import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState

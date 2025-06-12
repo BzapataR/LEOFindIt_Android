@@ -39,9 +39,6 @@ import com.example.leofindit.R
 import com.example.leofindit.deviceScanner.domain.BtleDevice
 import com.example.leofindit.deviceScanner.presentation.universalComponents.DeviceListEntry
 import com.example.leofindit.deviceScanner.presentation.universalComponents.RoundedListItem
-import com.example.leofindit.ui.theme.GoldPrimary
-import com.example.leofindit.ui.theme.GoldPrimaryDull
-import com.example.leofindit.ui.theme.Surface
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -100,7 +97,7 @@ fun DatabaseDevice(
 
                     IconButton(
                         onClick = { onAction(DatabaseDevicesActions.goBack) },
-                        colors = IconButtonDefaults.iconButtonColors(contentColor = GoldPrimary),
+                        colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.align(alignment = Alignment.CenterStart)
                     ) {
                         Icon(
@@ -112,6 +109,7 @@ fun DatabaseDevice(
                         text = "Saved Devices",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -124,13 +122,13 @@ fun DatabaseDevice(
                     Text(
                         text = "White Listed Devices",
                         style = MaterialTheme.typography.titleLarge,
-                        color = GoldPrimaryDull
+                        color = MaterialTheme.colorScheme.secondary
                     )
                     Spacer(Modifier.size(12.dp))
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.baseline_arrow_drop_down_24),
                         contentDescription = "Drop Down",
-                        tint = GoldPrimaryDull,
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.rotate(
                             degrees = rotationAngle(state.isWhiteListOpen)
                         )
@@ -159,7 +157,7 @@ fun DatabaseDevice(
             item { Spacer(modifier = Modifier.size(12.dp)) }
 
             item {// BlackList
-                Card(colors = CardDefaults.cardColors(containerColor = Surface)) {
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     RoundedListItem(
                         leadingText = "Black Listed Devices",
                         trailingIcon = ImageVector.vectorResource(R.drawable.baseline_arrow_drop_down_24),
@@ -190,7 +188,7 @@ fun DatabaseDevice(
         }
         Button(
             onClick = { onAction(DatabaseDevicesActions.ToggleDeletionDialog) },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
         ) {
             Text(
                 text = "Delete All Saved Devices",

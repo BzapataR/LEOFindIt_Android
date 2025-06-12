@@ -13,9 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import com.example.leofindit.deviceScanner.presentation.homePage.HomePageActions.toMarkedDevices
-import com.example.leofindit.ui.theme.GoldPrimary
-import com.example.leofindit.ui.theme.GoldPrimaryDull
+
 import kotlinx.coroutines.delay
 
 //********************************************************************************
@@ -60,13 +58,13 @@ fun Scanning(toMarkedDevices: () -> Unit) {
             altText
         },
         style = MaterialTheme.typography.bodySmall,
-        color = GoldPrimary
+        color = MaterialTheme.colorScheme.primary
     )
     TextButton(onClick = { toMarkedDevices() }) {
         Text(
             text = "Older Trackers...",
             style = MaterialTheme.typography.bodySmall,
-            color = GoldPrimaryDull
+            color = MaterialTheme.colorScheme.secondary
         )
     }
 }

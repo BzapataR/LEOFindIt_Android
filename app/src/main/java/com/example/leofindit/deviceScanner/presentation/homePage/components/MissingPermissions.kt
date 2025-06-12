@@ -29,12 +29,7 @@ import androidx.navigation.NavController
 import com.example.leofindit.controller.BtHelper
 import com.example.leofindit.controller.LocationHelper
 import com.example.leofindit.R
-import com.example.leofindit.deviceScanner.presentation.homePage.HomePageState
-import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.LeoFindItTheme
-import com.example.leofindit.ui.theme.OnPrimary
-import com.example.leofindit.ui.theme.OnSurface
-import com.example.leofindit.ui.theme.Surface
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -65,16 +60,16 @@ fun MissingPermissions(navController: NavController? = null, stateError : String
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.baseline_warning_24),
             contentDescription = "Error",
-            tint = OnPrimary,
+            tint = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier.size(100.dp)
         )
         Text(
-            color = GoldPrimary,
+            color = MaterialTheme.colorScheme.primary,
             text = stateError,
             style = MaterialTheme.typography.titleLarge
         )
         Text(
-            color = GoldPrimary,
+            color = MaterialTheme.colorScheme.primary,
             text = "Permissions and Services must be on to continue",
             style = MaterialTheme.typography.bodyMedium
         )
@@ -87,7 +82,7 @@ fun MissingPermissions(navController: NavController? = null, stateError : String
                 Button(
                     onClick = { BtHelper.requestPermission(btPermissions, context) },
                     modifier = Modifier.padding(end = 8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = Color.LightGray)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = Color.LightGray)
 
                 ) {
                     Text(
@@ -101,8 +96,6 @@ fun MissingPermissions(navController: NavController? = null, stateError : String
                 Button(
                     onClick =  { BtHelper.turnOnBtService(context) },
                     enabled = btPermissions.allPermissionsGranted,
-                    colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = OnSurface, disabledContainerColor = Color.DarkGray, disabledContentColor = Color.LightGray)
-
                 ) {
                     Text(
                         text = "Enable Bluetooth",
@@ -116,7 +109,7 @@ fun MissingPermissions(navController: NavController? = null, stateError : String
                 Button(
                     onClick = { LocationHelper.requestPermission(locationPermissions, context) },
                     modifier = Modifier.padding(end = 8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = Color.LightGray)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = Color.LightGray)
 
                 ) {
                     Text(
@@ -130,7 +123,6 @@ fun MissingPermissions(navController: NavController? = null, stateError : String
                 Button(
                     onClick =  { LocationHelper.enableLocationService(context) },
                     enabled = locationPermissions.allPermissionsGranted,
-                    colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = OnSurface,disabledContainerColor = Color.DarkGray, disabledContentColor = Color.LightGray)
 
                 ) {
                     Text(
@@ -147,7 +139,7 @@ fun MissingPermissions(navController: NavController? = null, stateError : String
             onClick = {navController?.navigate("Marked Devices")},
         ) {
             Text (
-                color = OnSurface,
+                color = MaterialTheme.colorScheme.onSurface,
                 text ="Older trackers...",
             )
         }

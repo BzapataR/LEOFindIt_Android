@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,11 +22,9 @@ import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.example.leofindit.deviceScanner.domain.BtleDevice
-import com.example.leofindit.ui.theme.GoldPrimaryDull
+import com.example.leofindit.ui.theme.LeoFindItTheme
 import com.example.leofindit.ui.theme.LeoIcons
-import com.example.leofindit.ui.theme.Surface
 
 //********************************************************************************
 //                    The Card that is used for displaying in
@@ -37,9 +34,6 @@ import com.example.leofindit.ui.theme.Surface
 fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice, height : Dp = 40.dp, width : Dp = 360.dp) {
     Card(
         modifier = Modifier.size(width = width, height = height),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
         onClick = {
             onListItemClick()
         }
@@ -59,14 +53,14 @@ fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice, height : 
                 Icon(
                     imageVector = LeoIcons.Bluetooth, // Change once database of different device types
                     contentDescription = "Device Type Icon",
-                    tint = Color.Unspecified
+                    tint = Color.Black
                 )
                     Text(
                         text = device.deviceName,
                         style = MaterialTheme.typography.titleMedium,
                         overflow = Ellipsis,
                         modifier = Modifier.width(192.dp),
-                        color = GoldPrimaryDull
+                        color = MaterialTheme.colorScheme.secondary
                     )
             }
             Row (horizontalArrangement = Arrangement.Center,
@@ -109,66 +103,20 @@ fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice, height : 
         }
     }
 }
-@Composable
-fun PreviousDeviceListEntry(navController: NavController?, device : BtleDevice) {
-    val address = device.deviceAddress
-    Card(
-        modifier = Modifier.size(width = 360.dp, height = 40.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        onClick = {
-            navController?.navigate(route ="Device From Db/$address")
-        }
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-                .fillMaxSize(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Left-side content
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Icon(
-                    imageVector = LeoIcons.Bluetooth, // Change once database of different device types
-                    contentDescription = "Device Type Icon",
-                    tint = Color.Unspecified
-                )
-                Text(
-                    text = device.deviceName,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.width(192.dp),
-                    color = GoldPrimaryDull
-                )
-            }
-            Row (horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Signal Strength",
-                    tint = Color.LightGray,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-        }
-    }
-}
+
 @Preview
 @Composable
 fun DeviceDetailEntryPreview() {
     val device1 = BtleDevice(deviceType = "", deviceUuid = emptyList(), deviceManufacturer = "", deviceAddress = "", deviceName = "Device 1", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -90)
     val device2 = BtleDevice(deviceType = "", deviceUuid = emptyList(), deviceManufacturer = "", deviceAddress = "", deviceName = "Device 2", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -60)
     val device3 = BtleDevice(deviceType = "", deviceUuid = emptyList(), deviceManufacturer = "", deviceAddress = "", deviceName = "Device 3", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = 0)
-    Column(
-        Modifier.padding(12.dp)
-    ) {
-        DeviceListEntry(device = device1, onListItemClick = {})
-        DeviceListEntry(device = device2, onListItemClick = {})
-        DeviceListEntry(device = device3, onListItemClick = {})
+    LeoFindItTheme {
+        Column(
+            Modifier.padding(12.dp)
+        ) {
+            DeviceListEntry(device = device1, onListItemClick = {})
+            DeviceListEntry(device = device2, onListItemClick = {})
+            DeviceListEntry(device = device3, onListItemClick = {})
+        }
     }
 }

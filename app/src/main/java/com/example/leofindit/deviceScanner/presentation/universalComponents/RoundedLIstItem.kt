@@ -21,9 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.leofindit.ui.theme.Background
-import com.example.leofindit.ui.theme.GoldPrimaryDull
-import com.example.leofindit.ui.theme.Surface
+
 //********************************************************************************
 //                    Function must be enclosed in a Card when
 //                    Grouped with other RoundedList Items template
@@ -54,7 +52,7 @@ fun RoundedListItem(
             string
     }
     ListItem(
-        colors = ListItemDefaults.colors(containerColor = Surface,),
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .1f),),
         leadingContent = {
             if (icon != null) {
                 Box(
@@ -69,7 +67,7 @@ fun RoundedListItem(
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = Background,
+                            tint = MaterialTheme.colorScheme.background,
                             modifier = modifier.size(20.dp)
                         )
                     }
@@ -79,7 +77,7 @@ fun RoundedListItem(
             Row(modifier= Modifier) {
                 Text(
                     text = leadingText,
-                    color = GoldPrimaryDull,
+                    color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )

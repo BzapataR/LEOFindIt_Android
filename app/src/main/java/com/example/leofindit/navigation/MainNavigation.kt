@@ -1,5 +1,6 @@
 package com.example.leofindit.navigation
 
+import com.example.leofindit.preferences.UserPreferencesRepository
 import kotlinx.serialization.Serializable
 
 sealed interface MainNavigation {
@@ -26,4 +27,7 @@ sealed interface MainNavigation {
 
     @Serializable
     data object MarkedDevice : MainNavigation
+
+    @Serializable
+    data object ThemeDialog : MainNavigation
 }

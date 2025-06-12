@@ -10,6 +10,9 @@ class SelectedDeviceViewModel : ViewModel() {
     private val _selectedDevice = MutableStateFlow<BtleDevice?>(null)
     val selectedDevice = _selectedDevice.asStateFlow()
 
+    private val _showThemeSelector = MutableStateFlow<Boolean>(false)
+    val showThemeSelector = _showThemeSelector.asStateFlow()
+
     fun onSelectedDevice(device : BtleDevice?) {
         _selectedDevice.value = device
     }

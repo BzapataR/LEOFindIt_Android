@@ -32,11 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leofindit.controller.BtHelper
 import com.example.leofindit.R
-import com.example.leofindit.ui.theme.GoldPrimary
-import com.example.leofindit.ui.theme.GoldPrimaryDull
 import com.example.leofindit.ui.theme.LeoFindItTheme
-import com.example.leofindit.ui.theme.OnSurface
-import com.example.leofindit.ui.theme.Surface
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 /*********************************************************************************
  *                   Bluetooth init permission page
@@ -57,19 +53,19 @@ fun BluetoothPermission(toNotification : () -> Unit, toFinish : () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp)
     ) {
         Text(
             text = "Bluetooth Access",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
-            color = GoldPrimary,
+            color = MaterialTheme.colorScheme.primary,
         )
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.baseline_bluetooth_24),
             contentDescription = "Bluetooth Logo",
-            tint = GoldPrimaryDull,
+            tint = MaterialTheme.colorScheme.secondary ,
             modifier = Modifier.size(100.dp)
         )
         Text(
@@ -77,7 +73,7 @@ fun BluetoothPermission(toNotification : () -> Unit, toFinish : () -> Unit) {
                     "so Proximity Tracker can detect trackers around you",
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(start = 8.dp, end = 8.dp),
-            color = GoldPrimary
+            color = MaterialTheme.colorScheme.primary
         )
         Button(
             onClick = {
@@ -88,15 +84,6 @@ fun BluetoothPermission(toNotification : () -> Unit, toFinish : () -> Unit) {
                         permissionsState.revokedPermissions.map { it.permission }
                     }"
                 )
-//                BtHelper.CheckBt(permissionsState = permissionsState, context =  context) {
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//                            navController?.navigate("Notification Access")
-//                        }
-//                        else navController?.navigate("Permission Done")
-//                }
-
-                //permission.launchPermissionRequest()
-
                 when {
                     // Request permissions if they aren't granted
                     !permissionsState.allPermissionsGranted -> {
@@ -130,7 +117,6 @@ fun BluetoothPermission(toNotification : () -> Unit, toFinish : () -> Unit) {
 
 
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = OnSurface),
             modifier = Modifier.fillMaxWidth(0.75f)
         ) {
             Text(
@@ -151,7 +137,6 @@ fun BluetoothPermission(toNotification : () -> Unit, toFinish : () -> Unit) {
 
                     else -> {"error"}
                 },
-                color= GoldPrimary
             )
         }
     }

@@ -24,20 +24,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leofindit.R
-import com.example.leofindit.ui.theme.GoldPrimary
-import com.example.leofindit.ui.theme.GoldPrimaryDull
 import com.example.leofindit.ui.theme.LeoFindItTheme
-import com.example.leofindit.ui.theme.OnSurface
-import com.example.leofindit.ui.theme.Surface
+
 /*********************************************************************************
  *                  When all into pages are complete
  *********************************************************************************/
 @Composable
 fun PermissionsDone(onFinish: (() -> Unit)? = null) {
-    Column (
+    Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp)
     ) {
 
         Text(
@@ -45,12 +42,12 @@ fun PermissionsDone(onFinish: (() -> Unit)? = null) {
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
-            color = GoldPrimary
+            color = MaterialTheme.colorScheme.primary
         )
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.baseline_check_circle_24),
             contentDescription = "Check Mark",
-            tint = GoldPrimaryDull,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(100.dp)
         )
         Column {
@@ -60,7 +57,7 @@ fun PermissionsDone(onFinish: (() -> Unit)? = null) {
                         "pre-installed \"Find My\" app",
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(start = 8.dp, end = 8.dp),
-                color = GoldPrimary
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.size(8.dp))
             Text(
@@ -69,7 +66,7 @@ fun PermissionsDone(onFinish: (() -> Unit)? = null) {
                         "their owners is only available for SmartTags.",
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(start = 8.dp, end = 8.dp),
-                color = GoldPrimary
+                color = MaterialTheme.colorScheme.primary
             )
         }
         Button(
@@ -78,7 +75,6 @@ fun PermissionsDone(onFinish: (() -> Unit)? = null) {
                     onFinish()
                 }
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = OnSurface),
             modifier = Modifier.fillMaxWidth(.75f)
 
         ) {

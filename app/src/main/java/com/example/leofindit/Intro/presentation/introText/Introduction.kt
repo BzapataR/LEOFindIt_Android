@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,11 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leofindit.R
-import com.example.leofindit.ui.theme.GoldPrimary
-import com.example.leofindit.ui.theme.GoldPrimaryDull
 import com.example.leofindit.ui.theme.LeoFindItTheme
-import com.example.leofindit.ui.theme.OnSurface
-import com.example.leofindit.ui.theme.Surface
+
 
 /*********************************************************************************
  *                   Welcome page for app (once only)
@@ -57,15 +53,14 @@ fun Introduction(nextComposable : () -> Unit) {
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
-                color = Surface
+                color = MaterialTheme.colorScheme.surfaceVariant
             )
             Text(
                 text = "Proximity Tracker",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = GoldPrimary,
-                //color = Color(0xff648de2),
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 32.sp,
                 )
         }
@@ -79,17 +74,17 @@ fun Introduction(nextComposable : () -> Unit) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.baseline_search_24),
                     contentDescription = "Manual Scan",
-                    tint = GoldPrimaryDull,
+                    tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(40.dp),
                 )
                 Column {
                     Text(
                         text = "Manual Scan",
                         fontWeight = FontWeight.Bold,
-                        color = GoldPrimary,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                     Text(
-                        color = GoldPrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         text = "Scan for surrounding AirTags, SmartTags, Tiles and more!",
                         fontWeight = FontWeight.Light
 
@@ -105,19 +100,19 @@ fun Introduction(nextComposable : () -> Unit) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.baseline_lock_24),
                     contentDescription = "Manual Scan",
-                    tint = GoldPrimaryDull,
+                    tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(40.dp)
                 )
                 Column {
                     Text(
                         text = "We respect your data",
                         fontWeight = FontWeight.Bold,
-                        color = GoldPrimary,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                     Text(
                         text = "Developed by Florida Gulf Coast University students without commercial interests.",
                         fontWeight = FontWeight.Light,
-                        color = GoldPrimary,
+                        color = MaterialTheme.colorScheme.primary,
 
                     )
                 }
@@ -128,7 +123,6 @@ fun Introduction(nextComposable : () -> Unit) {
                 nextComposable()
             },
             modifier = Modifier.fillMaxWidth(.75f),
-            colors = ButtonDefaults.buttonColors(containerColor = Surface, contentColor = OnSurface)
 
         )
         {
@@ -145,7 +139,7 @@ fun IntroPreview() {
         Surface(modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Introduction({})
+            Introduction {}
         }
     }
 }

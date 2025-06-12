@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.leofindit.ui.theme.GoldPrimary
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -78,8 +78,8 @@ fun FAB(modifier : Modifier, lazyListState: LazyListState) {
 fun FabIcon(onClick : () -> Unit) {
         SmallFloatingActionButton(
             onClick = onClick,
-            containerColor = GoldPrimary.copy(alpha = .75f), // Use your theme color
-            contentColor = Color.Black, // Adjust content color for contrast with GoldPrimary
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .75f), // Use your theme color
+            contentColor = Color.Black, // Adjust content color for contrast with MaterialTheme.colorScheme.primary
             shape = CircleShape,
             elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
         ) {

@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,11 +33,13 @@ import com.example.leofindit.controller.BtHelper
 import com.example.leofindit.controller.LocationHelper
 import com.example.leofindit.navigation.IntroNavigator
 import com.example.leofindit.navigation.MainNavigator
+import com.example.leofindit.preferences.ThemePreference
 import com.example.leofindit.preferences.UserPreferencesRepository
-import com.example.leofindit.ui.theme.Background
 import com.example.leofindit.ui.theme.LeoFindItTheme
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 
 
 class MainActivity : ComponentActivity() {
@@ -43,17 +47,18 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("SupportAnnotationUsage", "MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
+        val userSettings : UserPreferencesRepository by inject()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LeoFindItTheme {
+            val theme =  userSettings.getCurrentTheme.collectAsStateWithLifecycle(ThemePreference.SYSTEM)
+            LeoFindItTheme(themeSettings = theme.value) {
                 BtHelper.init(context = this)
                 LocationHelper.locationInit(context = this)
 
                 val mainNavController = rememberNavController()
                 val introNavController = rememberNavController()
-                val context = applicationContext
-                val userSettings = remember { UserPreferencesRepository(context) }
+
                 var isFirstLaunch = userSettings.isFirstLaunch.collectAsStateWithLifecycle(null)
                 splashScreen.setKeepOnScreenCondition { isFirstLaunch.value == null }
                 LaunchedEffect(Unit) {
@@ -64,7 +69,7 @@ class MainActivity : ComponentActivity() {
 
                 Column(
                     modifier = Modifier
-                        .background(Background)
+                        .background(MaterialTheme.colorScheme.background)
                         .navigationBarsPadding()
                         .statusBarsPadding()
                 ) {
@@ -83,6 +88,8 @@ class MainActivity : ComponentActivity() {
                         false -> {
                             MainNavigator(
                                 navigator = mainNavController,
+                                userPreferencesRepository = userSettings,
+                                currentTheme = theme.value
                             )
                         }
                         null -> { // with splash screen this shouldn't trigger but is here as an edge case

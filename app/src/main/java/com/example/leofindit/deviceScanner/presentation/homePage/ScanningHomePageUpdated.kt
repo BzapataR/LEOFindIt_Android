@@ -26,13 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,11 +41,6 @@ import com.example.leofindit.deviceScanner.presentation.homePage.components.FAB
 import com.example.leofindit.deviceScanner.presentation.homePage.components.MissingPermissions
 import com.example.leofindit.deviceScanner.presentation.homePage.components.Scanning
 import com.example.leofindit.deviceScanner.presentation.universalComponents.DeviceListEntry
-import com.example.leofindit.ui.theme.GoldPrimary
-import com.example.leofindit.ui.theme.InversePrimary
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -80,33 +69,6 @@ fun HomePageRoot(
 @Composable
 fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
     val lazyListState = rememberLazyListState()
-    var fabVisible by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
-    var autoHideJob by remember { mutableStateOf<Job?>(null) }
-
-    // Condition for showing FAB: true if scrolled past the first item.
-    val pastFirstIndex by remember {
-        derivedStateOf { lazyListState.firstVisibleItemIndex > 0 }
-    }
-
-    LaunchedEffect(pastFirstIndex, lazyListState.isScrollInProgress) {
-        if (pastFirstIndex) {
-            fabVisible = true
-            autoHideJob?.cancel() // Cancel any existing auto-hide job
-
-            if (!lazyListState.isScrollInProgress) {
-                // If scrolling has stopped, start the auto-hide timer
-                autoHideJob = coroutineScope.launch {
-                    delay(2000L)
-                    fabVisible = false // Then hide the FAB
-                }
-            }
-        } else {
-            // If we are at the top of the list or initially
-            fabVisible = false
-            autoHideJob?.cancel()
-        }
-    }
     Box {
         LazyColumn(
             state = lazyListState,
@@ -124,7 +86,10 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                     Row(
                         modifier = Modifier
                             .padding(start = 12.dp)
-                            .background(InversePrimary, shape = MaterialTheme.shapes.medium)
+                            .background(
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = .75f),
+                                shape = MaterialTheme.shapes.medium
+                            )
                             .padding(8.dp)
                             .align(Alignment.CenterStart)
                     ) {
@@ -133,7 +98,7 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                             onClick = { onAction(HomePageActions.pauseScan) },
                             enabled = !state.missingPermissions,
                             colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = if (!state.isScanning) GoldPrimary else Color.Transparent
+                                containerColor = if (!state.isScanning) MaterialTheme.colorScheme.primary else Color.Transparent
                             ),
                             modifier = Modifier
                                 .padding(end = 12.dp)
@@ -142,7 +107,7 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                             Icon(
                                 imageVector = ImageVector.vectorResource(R.drawable.stop_24_fill),
                                 contentDescription = null,
-                                tint = if (!state.isScanning) Color.Black else GoldPrimary
+                                tint = if (!state.isScanning) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
                             )
                         }
 
@@ -153,7 +118,7 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                             onClick = { onAction(HomePageActions.startScan) },
                             enabled = !state.missingPermissions,
                             colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = if (state.isScanning) GoldPrimary else Color.Transparent
+                                containerColor = if (state.isScanning) MaterialTheme.colorScheme.primary else Color.Transparent
 
                             ),
                             modifier = Modifier
@@ -163,7 +128,7 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                             Icon(
                                 imageVector = ImageVector.vectorResource(R.drawable.baseline_play_arrow_24),
                                 contentDescription = null,
-                                tint = if (state.isScanning && (!state.missingPermissions)) Color.Black else GoldPrimary
+                                tint = if (state.isScanning && (!state.missingPermissions)) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
 
                             )
                         }
@@ -174,7 +139,8 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                         text = "Scan",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
+                        color = MaterialTheme.colorScheme.primary
                     )
 
                     // Right: Settings Icon Button
@@ -188,7 +154,7 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.outline_settings_24),
                             contentDescription = null,
-                            tint = GoldPrimary
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -214,7 +180,7 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                     else -> {
                         item {
                             if (!state.namedDeviceList.isEmpty()) {
-                                Text("Named Devices", color = GoldPrimary)
+                                Text("Named Devices", color = MaterialTheme.colorScheme.primary)
                             }
                         }
                         itemsIndexed(state.namedDeviceList) { index, device ->
@@ -232,7 +198,7 @@ fun HomePage(state: HomePageState, onAction: (HomePageActions) -> Unit) {
                         }
                         item {
                             if (!state.unnamedDevices.isEmpty())
-                                Text("Unnamed Devices", color = GoldPrimary)
+                                Text("Unnamed Devices", color = MaterialTheme.colorScheme.primary)
                         }
 
                         itemsIndexed(state.unnamedDevices) { index, device ->

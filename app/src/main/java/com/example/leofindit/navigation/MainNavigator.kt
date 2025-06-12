@@ -14,6 +14,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.navigation
 import com.example.leofindit.deviceScanner.presentation.SelectedDeviceViewModel
 import com.example.leofindit.deviceScanner.presentation.databaseDevices.DatabaseDeviceRoot
@@ -24,6 +25,9 @@ import com.example.leofindit.deviceScanner.presentation.settings.AppInfo
 import com.example.leofindit.deviceScanner.presentation.settings.Settings
 import com.example.leofindit.deviceScanner.presentation.trackerDetails.TrackerDetailViewModel
 import com.example.leofindit.deviceScanner.presentation.trackerDetails.TrackerDetailsRoot
+import com.example.leofindit.preferences.ThemePreference
+import com.example.leofindit.preferences.ThemeSelector
+import com.example.leofindit.preferences.UserPreferencesRepository
 import org.koin.compose.viewmodel.koinViewModel
 
 /*********************************************************************************
@@ -32,6 +36,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun MainNavigator(
     navigator : NavHostController,
+    userPreferencesRepository: UserPreferencesRepository,
+    currentTheme: ThemePreference
 ) {
     NavHost(
         navController = navigator,
@@ -87,7 +93,8 @@ fun MainNavigator(
                 Settings(
                     goBack = { navigator.popBackStack() },
                     toAppInfo = { navigator.navigate(MainNavigation.AppInfo) },
-                    toSavedDevices = { navigator.navigate(MainNavigation.MarkedDevice) }
+                    toSavedDevices = { navigator.navigate(MainNavigation.MarkedDevice) },
+                    toThemeSelector = { navigator.navigate(MainNavigation.ThemeDialog)}
                 )
             }
             composable<MainNavigation.AppInfo> {
@@ -109,6 +116,9 @@ fun MainNavigator(
                         )
                     }
                 )
+            }
+            dialog<MainNavigation.ThemeDialog>{
+                ThemeSelector(userPreferencesRepository, goBack = {navigator.popBackStack()}, currentTheme )
             }
 
         }

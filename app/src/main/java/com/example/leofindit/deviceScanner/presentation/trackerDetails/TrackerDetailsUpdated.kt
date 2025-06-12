@@ -48,10 +48,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.example.leofindit.R
 import com.example.leofindit.deviceScanner.presentation.universalComponents.RoundedListItem
-import com.example.leofindit.ui.theme.GoldPrimary
-import com.example.leofindit.ui.theme.GoldPrimaryDull
-import com.example.leofindit.ui.theme.OnSurface
-import com.example.leofindit.ui.theme.Surface
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.core.net.toUri
@@ -111,7 +107,7 @@ fun TrackerDetails(
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.baseline_arrow_back_24),
                     contentDescription = "Back Button",
-                    tint = GoldPrimary
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
             Row(
@@ -126,7 +122,8 @@ fun TrackerDetails(
                         fontWeight = FontWeight.Bold
                     ),
                     modifier = Modifier.weight(1f),
-                    maxLines = 1
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             // Connection status and last seen time
@@ -154,7 +151,7 @@ fun TrackerDetails(
                         text = "Last seen: ${state.time}",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
-                        color = GoldPrimaryDull,
+                        color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.fillMaxWidth()
                     )
                     SingleChoiceSegmentedButtonRow(
@@ -189,11 +186,11 @@ fun TrackerDetails(
                                     true -> 2
                                 },
                                 colors = SegmentedButtonDefaults.colors(
-                                    activeContentColor = GoldPrimary,
-                                    activeContainerColor = GoldPrimary.copy(alpha = 0.1f),
+                                    activeContentColor = MaterialTheme.colorScheme.primary,
+                                    activeContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                     activeBorderColor = Color.White.copy(alpha=.25f),
                                     inactiveBorderColor = Color.White.copy(alpha=.25f),
-                                    inactiveContainerColor = Surface.copy(alpha =.1f),
+                                    inactiveContainerColor = MaterialTheme.colorScheme.surface.copy(alpha =.1f),
 
                                 )
                             ) {
@@ -265,7 +262,6 @@ fun TrackerDetails(
                         leadingText = "Locate Tracker", trailingText = "Nearby"
                     )
 
-                    HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
 //
 //                    RoundedListItem( //todo if map added add within here
 //                        onClick = { navController?.navigate("Observe Tracker") },
@@ -290,7 +286,7 @@ fun TrackerDetails(
                     Text(
                         text = "Ignoring trackers will stop notifications in the background",
                         style = MaterialTheme.typography.bodySmall,
-                        color = OnSurface.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                     //********************************************************************************
                     //                    Manufacturer website
@@ -315,7 +311,7 @@ fun TrackerDetails(
                     Text(
                         text = " Learn more, e.g how to disable the tracker",
                         style = MaterialTheme.typography.bodySmall,
-                        color = OnSurface.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
             }

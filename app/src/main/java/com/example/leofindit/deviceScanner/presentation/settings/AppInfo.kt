@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.example.leofindit.R
 import com.example.leofindit.deviceScanner.presentation.universalComponents.RoundedListItem
-import com.example.leofindit.ui.theme.GoldPrimary
 import com.example.leofindit.ui.theme.LeoFindItTheme
 
 @SuppressLint("QueryPermissionsNeeded")
@@ -51,7 +50,7 @@ fun AppInfo(goBack: () -> Unit = {} ) {
 
     Column(modifier = Modifier.fillMaxSize()) {
         IconButton(
-            colors = IconButtonDefaults.iconButtonColors(contentColor = GoldPrimary),
+            colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.primary),
             onClick = { goBack() }
         ) {
             Icon(
@@ -68,13 +67,13 @@ fun AppInfo(goBack: () -> Unit = {} ) {
 
         ) {
             Text(
-                color = GoldPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 text = "Proximity Tracker for Android",
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center,
             )
             Text(
-                color = GoldPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 text = "Version 1.0.0",
                 style = MaterialTheme.typography.bodySmall,
             )

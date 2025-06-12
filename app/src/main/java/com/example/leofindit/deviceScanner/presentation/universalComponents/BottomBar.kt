@@ -2,6 +2,7 @@ package com.example.leofindit.deviceScanner.presentation.universalComponents
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -20,9 +21,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.leofindit.R
 import com.example.leofindit.ui.theme.LeoFindItTheme
-import com.example.leofindit.ui.theme.OnPrimary
-import com.example.leofindit.ui.theme.OnSurface
-import com.example.leofindit.ui.theme.Surface
+
 //********************************************************************************
 //                    not used navigation bar to navigate to
 //                    home and settings page
@@ -47,16 +46,16 @@ fun BottomBar(navController: NavController? = null) {
         modifier = Modifier
             .fillMaxWidth(),
            // .background(MaterialTheme.colorScheme.background),
-        containerColor = OnPrimary
+        containerColor = MaterialTheme.colorScheme.onPrimary
 
         ) {
         items.forEachIndexed { index, item->
         NavigationBarItem(
             colors = NavigationBarItemDefaults.colors(
-                indicatorColor = Surface,
-                selectedIconColor = OnSurface,
-                unselectedIconColor = OnSurface,
-                selectedTextColor = OnSurface
+                indicatorColor = MaterialTheme.colorScheme.surface,
+                selectedIconColor = MaterialTheme.colorScheme.onSurface,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+                selectedTextColor = MaterialTheme.colorScheme.onSurface
             ),
             icon = {
                 Icon(
