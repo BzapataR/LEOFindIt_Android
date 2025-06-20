@@ -33,7 +33,7 @@ class DeviceRepository(
 ) : DataRepository{
     val tag = "Device Repository"
 
-    override val _observableDevices = MutableStateFlow(emptyList<BtleDevice>())
+    override val _observableDevices = MutableStateFlow(emptyList<BtleDevice>()) // change this to empty list if bug
     override val observableDevices = _observableDevices.asStateFlow()
     val repositoryScope = CoroutineScope(Dispatchers.IO)
 
@@ -55,6 +55,9 @@ class DeviceRepository(
                 scannerResult.distinctUntilChanged()
             ) { dbEntity, scannerResult ->
                 scannerResult.map { scanned->
+                    if (_observableDevices.value.none { it.deviceAddress == scanned.deviceAddress }){
+                        _observableDevices.update { it + scanned }
+                    }
                     val dbMatch = dbEntity.find{ it.deviceAddress == scanned.deviceAddress }
 
                     if (dbMatch != null) {
@@ -72,11 +75,6 @@ class DeviceRepository(
                     }
                     else
                         scanned
-                }
-            }
-            repositoryScope.launch {
-                combinedFlow.collect { deviceList ->
-                    _observableDevices.value = deviceList
                 }
             }
 

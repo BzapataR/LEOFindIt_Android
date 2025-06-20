@@ -21,7 +21,7 @@ import com.example.leofindit.deviceScanner.presentation.databaseDevices.Database
 import com.example.leofindit.deviceScanner.presentation.databaseDevices.DatabaseDeviceViewModel
 import com.example.leofindit.deviceScanner.presentation.homePage.HomePageRoot
 import com.example.leofindit.deviceScanner.presentation.homePage.HomePageViewModel
-import com.example.leofindit.deviceScanner.presentation.settings.AppInfo
+import com.example.leofindit.deviceScanner.presentation.appInfo.AppInfo
 import com.example.leofindit.deviceScanner.presentation.settings.Settings
 import com.example.leofindit.deviceScanner.presentation.trackerDetails.TrackerDetailViewModel
 import com.example.leofindit.deviceScanner.presentation.trackerDetails.TrackerDetailsRoot

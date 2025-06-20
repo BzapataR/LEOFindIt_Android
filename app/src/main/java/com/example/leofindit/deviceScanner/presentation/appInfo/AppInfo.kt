@@ -1,4 +1,4 @@
-package com.example.leofindit.deviceScanner.presentation.settings
+package com.example.leofindit.deviceScanner.presentation.appInfo
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -74,7 +74,7 @@ fun AppInfo(goBack: () -> Unit = {} ) {
             )
             Text(
                 color = MaterialTheme.colorScheme.primary,
-                text = "Version 1.0.0",
+                text = "Version 0.2.0",
                 style = MaterialTheme.typography.bodySmall,
             )
 
@@ -91,7 +91,7 @@ fun AppInfo(goBack: () -> Unit = {} ) {
                     )
                 },
                 icon = ImageVector.vectorResource(R.drawable.baseline_mail_24),
-                color = colorResource(R.color.apple_blue_light),
+                iconBackgroundColor = colorResource(R.color.apple_blue_light),
                 leadingText = "Send us Feedback",
                 trailingIcon = ImageVector.vectorResource(R.drawable.baseline_link_24),
                 iconModifier = Modifier.rotate(-45F)
@@ -107,17 +107,10 @@ fun AppInfo(goBack: () -> Unit = {} ) {
         ) {
             RoundedListItem(
                 onClick = { context.startActivity(brianGitHub) },
-                icon = ImageVector.vectorResource(R.drawable.baseline_brush_24),
-                color = Color.Green,
-                leadingText = "UI Developer", trailingText = "Brian Zapata",
-                trailingIcon = ImageVector.vectorResource(R.drawable.baseline_link_24),
-                iconModifier = Modifier.rotate(-45F)
-            )
-            RoundedListItem(
-                onClick = { context.startActivity(jeremyGitHub) },
-                icon = ImageVector.vectorResource(R.drawable.outline_data_object_24),
-                color = colorResource(R.color.Orange),
-                leadingText = "Bluetooth Backend", trailingText = "Jeremy Clark",
+                icon = ImageVector.vectorResource(R.drawable.github_mark),
+                iconBackgroundColor = Color.Transparent,
+                iconColor = Color.Black,
+                leadingText = "App Developer", trailingText = "Brian Zapata",
                 trailingIcon = ImageVector.vectorResource(R.drawable.baseline_link_24),
                 iconModifier = Modifier.rotate(-45F)
             )

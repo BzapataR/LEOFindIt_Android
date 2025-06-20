@@ -3,11 +3,8 @@ package com.example.leofindit.deviceScanner.presentation.databaseDevices
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.vectorResource
@@ -45,8 +43,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun DatabaseDeviceRoot(
     viewModel: DatabaseDeviceViewModel = koinViewModel(),
-    onDeviceClicked : (device: BtleDevice) -> Unit,
-    goBack : () -> Unit
+    onDeviceClicked: (device: BtleDevice) -> Unit,
+    goBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     DatabaseDevice(
@@ -56,6 +54,7 @@ fun DatabaseDeviceRoot(
                 is DatabaseDevicesActions.goBack -> {
                     goBack()
                 }
+
                 is DatabaseDevicesActions.onDeviceClicked -> onDeviceClicked(action.device)
 
                 else -> Unit
@@ -67,10 +66,11 @@ fun DatabaseDeviceRoot(
 
 @Composable
 fun DatabaseDevice(
-    onAction : (DatabaseDevicesActions) -> Unit,
+    onAction: (DatabaseDevicesActions) -> Unit,
     state: DatabaseDeviceState
 ) {
-    val rotationAngle = @Composable fun(bool:Boolean) : Float {
+    val rotationAngle = @Composable
+    fun(bool: Boolean): Float {
         val animation by animateFloatAsState(
             targetValue = if (bool) 180f else 0f,
             label = "Animation"
@@ -82,41 +82,40 @@ fun DatabaseDevice(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+
+            IconButton(
+                onClick = { onAction(DatabaseDevicesActions.goBack) },
+                colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                modifier = Modifier.align(alignment = Alignment.CenterStart)
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.baseline_arrow_back_24),
+                    contentDescription = "Back Arrow",
+                )
+            }
+            Text(
+                text = "Saved Devices",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 12.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    IconButton(
-                        onClick = { onAction(DatabaseDevicesActions.goBack) },
-                        colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.align(alignment = Alignment.CenterStart)
-                    ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.baseline_arrow_back_24),
-                            contentDescription = "Back Arrow",
-                        )
-                    }
-                    Text(
-                        text = "Saved Devices",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
             item { //WhiteList
-
-                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Card(
+                    modifier = Modifier.shadow(24.dp),
+                ) {
                     RoundedListItem(
                         leadingText = "White Listed Devices",
                         trailingIcon = ImageVector.vectorResource(R.drawable.baseline_arrow_drop_down_24),
@@ -128,10 +127,18 @@ fun DatabaseDevice(
                     AnimatedVisibility(state.isWhiteListOpen) {
                         Spacer(modifier = Modifier.size(12.dp))
                         Column {
+                            Spacer(modifier = Modifier.size(12.dp))
                             state.whiteListDevice.forEach { device ->
                                 DeviceListEntry(
-                                    { onAction(DatabaseDevicesActions.onDeviceClicked(device)) },
-                                    device
+                                    width = LocalConfiguration.current.screenWidthDp.dp,
+                                    onListItemClick = {
+                                        onAction(
+                                            DatabaseDevicesActions.onDeviceClicked(
+                                                device
+                                            )
+                                        )
+                                    },
+                                    device = device
                                 )
                             }
                         }
@@ -142,7 +149,9 @@ fun DatabaseDevice(
             item { Spacer(modifier = Modifier.size(12.dp)) }
 
             item {// BlackList
-                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Card(
+                    modifier = Modifier.shadow(24.dp),
+                ) {
                     RoundedListItem(
                         leadingText = "Black Listed Devices",
                         trailingIcon = ImageVector.vectorResource(R.drawable.baseline_arrow_drop_down_24),
@@ -153,7 +162,7 @@ fun DatabaseDevice(
                     )
                     AnimatedVisibility(state.isBlackListOpen) {
                         Spacer(modifier = Modifier.size(12.dp))
-                        Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+                        Column {
                             Spacer(modifier = Modifier.size(12.dp))
                             state.blackListDevice.forEach { device ->
                                 DeviceListEntry(
@@ -175,7 +184,10 @@ fun DatabaseDevice(
         }
         Button(
             onClick = { onAction(DatabaseDevicesActions.ToggleDeletionDialog) },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
+            ),
         ) {
             Text(
                 text = "Delete All Saved Devices",
@@ -190,7 +202,7 @@ fun DatabaseDevice(
                         contentDescription = "Delete Icon"
                     )
                 },
-                onDismissRequest = { onAction(DatabaseDevicesActions.ToggleDeletionDialog ) },
+                onDismissRequest = { onAction(DatabaseDevicesActions.ToggleDeletionDialog) },
                 title = {
                     Text("Data Deletion", style = MaterialTheme.typography.titleLarge)
                 },

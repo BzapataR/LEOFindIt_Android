@@ -81,19 +81,19 @@ fun Settings(
             RoundedListItem(
                 onClick = { toAppInfo() },
                 icon = ImageVector.vectorResource(R.drawable.outline_info_24),
-                color = Color(0xff00aa00),
+                iconBackgroundColor = Color(0xff00aa00),
                 leadingText = "Information & Contact"
             )
             RoundedListItem(
                 onClick = { toSavedDevices() },
                 icon = ImageVector.vectorResource(R.drawable.baseline_list_24),
-                color = Color.Gray,
+                iconBackgroundColor = Color.Gray,
                 leadingText = "Marked Device",
             )
             RoundedListItem(
                 onClick = { toThemeSelector() },
                 icon = ImageVector.vectorResource(R.drawable.palette_24dp),
-                color = Color(0xffaa0000),
+                iconBackgroundColor = Color(0xffaa0000),
                 leadingText = "Themes"
             )
         }

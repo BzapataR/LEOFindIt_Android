@@ -37,7 +37,8 @@ fun RoundedListItem(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null, // optional onClick
     icon: ImageVector? = null, // optional Icon
-    color: Color = Color.Unspecified, // Sets the Color of the circle around the icon
+    iconBackgroundColor: Color = Color.Unspecified, // Sets the Color of the circle around the icon
+    iconColor : Color = MaterialTheme.colorScheme.background,
     leadingText: String,
     trailingText: String = "",
     trailingIcon: ImageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, // Icon at the end with default
@@ -59,7 +60,7 @@ fun RoundedListItem(
                     modifier = modifier
                         .size(24.dp) // Circle size
                         .background(
-                            color = color,
+                            color = iconBackgroundColor,
                             shape = CircleShape // Circle shape
                         ),
                     contentAlignment = Alignment.Center
@@ -67,7 +68,7 @@ fun RoundedListItem(
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.background,
+                            tint = iconColor,
                             modifier = modifier.size(20.dp)
                         )
                     }

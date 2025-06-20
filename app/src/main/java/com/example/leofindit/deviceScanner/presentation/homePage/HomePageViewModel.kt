@@ -29,7 +29,6 @@ class HomePageViewModel(
             SharingStarted.WhileSubscribed(5000L),
             _state.value
         )
-    private val deviceList = dataRepository.observableDevices
     fun onAction(action: HomePageActions) {
         when (action) {
             is HomePageActions.onDeviceClick -> { /* pass logic from main activity to navigate*/}

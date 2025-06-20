@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/Background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/leo_logo_drawable</item>
-        <item name="windowSplashScreenAnimationDuration">3000</item> <item name="postSplashScreenTheme">@style/Theme.Leo_findit</item> </style>
+        <item name="backgroundColor">@color/Background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/leo_find_it_icon_round</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/Background</item>
+        <item name="windowSplashScreenAnimationDuration">1000</item>
+        <item name="postSplashScreenTheme">@style/Theme.Leo_findit</item>
+    </style>
 </resources>

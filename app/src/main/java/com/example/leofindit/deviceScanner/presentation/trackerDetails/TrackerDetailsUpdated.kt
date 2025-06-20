@@ -257,7 +257,7 @@ fun TrackerDetails(
 //                            }
 //                            navController?.navigate(route = "Precision Finding/${address}")
                         },
-                        color = Color(0xff007aff),
+                        iconBackgroundColor = Color(0xff007aff),
                         icon = ImageVector.vectorResource(R.drawable.outline_explore_24),
                         leadingText = "Locate Tracker", trailingText = "Nearby"
                     )
@@ -273,7 +273,7 @@ fun TrackerDetails(
                         HorizontalDivider(thickness = Dp.Hairline, color = Color.LightGray)
 
                         RoundedListItem(
-                            color = Color.Yellow,
+                            iconBackgroundColor = Color.Yellow,
                             icon = Icons.Filled.Create,
                             leadingText = "Create Nickname",
                             trailingText = "Set Nickname",
@@ -301,7 +301,7 @@ fun TrackerDetails(
                         RoundedListItem(
                             onClick = { onAction(TrackerDetailActions.ToManufacturerWebsite) },
                             icon = ImageVector.vectorResource(R.drawable.outline_info_24),
-                            color = Color.Green,
+                            iconBackgroundColor = Color.Green,
                             leadingText = "Manufacture's Website",
                             trailingIcon = ImageVector.vectorResource(R.drawable.baseline_link_24),
                             iconModifier = Modifier.rotate(-45F)
