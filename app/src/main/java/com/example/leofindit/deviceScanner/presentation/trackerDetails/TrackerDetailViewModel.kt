@@ -55,6 +55,7 @@ class TrackerDetailViewModel (
             is TrackerDetailActions.GoBack -> {/* pass logic from main activity to pop backStack*/}
             is TrackerDetailActions.DisplayToast -> {/*Put Logic here to display toast Context can't be in VM*/}
             is TrackerDetailActions.Copy -> {/*Same here Define in Root Composable*/}
+            is TrackerDetailActions.InterrogateDevice -> {interrogateDevice(_state.value.address)}
         }
     }
 
@@ -96,5 +97,8 @@ class TrackerDetailViewModel (
         viewModelScope.launch {
             deviceRepository.editNickName(address = address, newNickName = newNickName)
         }
+    }
+    private fun interrogateDevice(address : String) {
+        deviceRepository.interrogate(address)
     }
 }

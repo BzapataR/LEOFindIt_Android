@@ -207,6 +207,10 @@ class DeviceRepository(
         return Result.Error(DbError.UNKNOWN)
     }
 
+    override fun interrogate(address: String) {
+        scanner.interrogation(address)
+    }
+
 
     fun timeStampFormat(timeStamp: Long): String {
         val timeDiffMillis = System.currentTimeMillis() - timeStamp

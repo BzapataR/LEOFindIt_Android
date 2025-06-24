@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -313,6 +314,15 @@ fun TrackerDetails(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
+                    Button(
+                        onClick = {
+                            onAction(TrackerDetailActions.InterrogateDevice)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    {
+                        Text(text = "Interrogate Device")
+                    }
                 }
             }
         }

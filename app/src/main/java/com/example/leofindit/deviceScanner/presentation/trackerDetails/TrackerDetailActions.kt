@@ -12,5 +12,6 @@ sealed interface TrackerDetailActions {
     data class DisplayToast(val DisplayVal : String) : TrackerDetailActions
     data object ShowEditDialog : TrackerDetailActions
     data object ShowDeleteDialog : TrackerDetailActions
+    data object InterrogateDevice : TrackerDetailActions
     //data class interrogate(val device : BtleDevice)
 }

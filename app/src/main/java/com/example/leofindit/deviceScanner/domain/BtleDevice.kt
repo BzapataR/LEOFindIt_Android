@@ -1,7 +1,6 @@
 package com.example.leofindit.deviceScanner.domain
 
-import android.util.Log
-import androidx.compose.runtime.Immutable
+import java.util.UUID
 
 data class BtleDevice(
     val deviceType: String,
@@ -16,6 +15,8 @@ data class BtleDevice(
     val nickName: String? = null,
     val timeStamp: Long,
     val deviceUuid: List<String>,
+    val serviceUUIDs : List<UUID> = emptyList(),
+    val characteristicsUUIDs : List<UUID> = emptyList()
 
     )
 

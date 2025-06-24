@@ -11,6 +11,7 @@ sealed interface DataError : Error {
         BLUETOOTH_DISABLED,
         ALREADY_SCANNING,
         SCANNER_FAILED,
+        DEVICE_NOT_FOUND,
         UNKNOWN_ERROR,
     }
     enum class RepositoryError : DataError {

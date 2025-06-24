@@ -2,7 +2,13 @@ package com.example.leofindit.deviceScanner.data
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
@@ -12,16 +18,16 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.util.isNotEmpty
 import com.example.leofindit.deviceScanner.domain.BtleDevice
+import com.example.leofindit.errors.DataError
 import com.example.leofindit.errors.DataError.ScanningError
 import com.example.leofindit.errors.EmptyResult
 import com.example.leofindit.errors.Result
-import kotlinx.coroutines.flow.Flow
+import com.example.leofindit.errors.onError
+import com.example.leofindit.errors.onSuccess
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 
@@ -38,6 +44,7 @@ class DeviceScanner(private val context: Context) {
     private val _scanResults = MutableStateFlow<MutableList<BtleDevice>>(mutableListOf())
     val scanResults : StateFlow<List<BtleDevice>> = _scanResults.asStateFlow()
     private var scanCallback: ((List<BtleDevice>) -> Unit)? = null
+    private var bluetoothGatt : BluetoothGatt ? = null
 
 
     init {
@@ -57,11 +64,6 @@ class DeviceScanner(private val context: Context) {
             }.toMutableList()
             newList
         }
-    }
-    fun findDeviceByAddress(address: String) : Flow<BtleDevice> {
-        return _scanResults.map { list->
-            list.firstOrNull { it.deviceAddress == address }
-        }.filterNotNull()
     }
 
 
@@ -207,6 +209,92 @@ Functions below will be in another file likely ViewModel to process intents and 
         bluetoothLeScanner?.stopScan(leScanCallback)
         return Result.Success(Unit)
     }// End of stopScanning()
+    fun connectToDevice(address: String) : Result<BluetoothDevice,ScanningError> {
+        var device : BluetoothDevice
+        bluetoothAdapter?.let { adapter ->
+            try {
+                device = adapter.getRemoteDevice(address)
+            } catch (_: IllegalArgumentException) {
+                return Result.Error(ScanningError.DEVICE_NOT_FOUND)
+            }
+        }?: run {
+                return Result.Error(ScanningError.BLUETOOTH_DISABLED)
+            }
+        return Result.Success(device)
+    }
+    private val gattCallback = object : BluetoothGattCallback() {
+        override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
+            if(newState == BluetoothProfile.STATE_CONNECTED) {
+                Log.d("Gatt", "Connected to Gatt server")
+                if(
+                    ContextCompat
+                        .checkSelfPermission(
+                            context,
+                            Manifest.permission.BLUETOOTH_SCAN
+                        ) == PackageManager.PERMISSION_GRANTED
+                ){
+                    gatt?.discoverServices()
+                }
+            }
+            else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Log.d("Gatt", "Disconnected from Gatt server")
+            }
+        }
+
+        override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+            if (
+                ContextCompat
+                    .checkSelfPermission(
+                        context,
+                        Manifest.permission.BLUETOOTH_SCAN
+                    ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                if (status == BluetoothGatt.GATT_SUCCESS && gatt != null) {
+                    for (services in gatt.services) {
+                        Log.d("Gatt", "Service UUID : ${services.uuid}")
+                        for (characteristics in services.characteristics) {
+                            Log.d("Gatt", "Characteristic ${characteristics.uuid}")
+                            val props = characteristics.properties
+                            val isReadable =
+                                (props and BluetoothGattCharacteristic.PROPERTY_READ) != 0
+                            if (isReadable) {
+                                Log.d("Gatt", "Reading values...")
+                                gatt.readCharacteristic(characteristics)
+                            }
+                            else {
+                                Log.d("Gatt", "Not Readable")
+                            }
+                        }
+                    }
+                }
+                else {
+                    Log.d("Gatt" ,"Service discovery failed with status : $status")
+                }
+            }
+        }
+    }
+    
+    fun interrogation(address: String) : EmptyResult<ScanningError> {
+        connectToDevice(address = address)
+            .onError { error ->
+            return Result.Error(error)
+        }
+            .onSuccess { device ->
+                if(
+                    ContextCompat
+                        .checkSelfPermission(
+                             context,
+                             Manifest.permission.BLUETOOTH_SCAN
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ){
+                    return Result.Error(ScanningError.MISSING_PERMISSIONS)
+                }
+                bluetoothGatt?.disconnect()
+                bluetoothGatt?.close()
+                device.connectGatt(context, false, gattCallback)
+            }
+        return Result.Success(Unit)
+    }
 //
 //    fun getScanState():Boolean{
 //        return isScanning
