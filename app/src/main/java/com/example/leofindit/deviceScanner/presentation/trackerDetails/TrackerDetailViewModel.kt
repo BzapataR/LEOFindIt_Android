@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.toRoute
 import androidx.lifecycle.viewModelScope
 import com.example.leofindit.deviceScanner.data.DeviceRepository
+import com.example.leofindit.errors.onError
+import com.example.leofindit.errors.onSuccess
 import com.example.leofindit.navigation.MainNavigation
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,6 +74,8 @@ class TrackerDetailViewModel (
                         deviceType = "BluetoothDevice",//TODO this is temp
                         nickName = device?.nickName ?: device?.deviceName,
                        // manufacturerSite = "www.google.com", // TODO temp
+                        manufacturer = device?.deviceManufacturer ?: "",
+                        manufacturerData = device?.manufacturerData ?: "",
                         isSus = device?.isSuspicious,
                         isLoading = false
                     )
@@ -99,6 +103,13 @@ class TrackerDetailViewModel (
         }
     }
     private fun interrogateDevice(address : String) {
+        _state.update{ it.copy(isInterrogating = true) }
         deviceRepository.interrogate(address)
+            .onError { error ->
+                _state.update{ it.copy(isInterrogating = false) }
+            }
+            .onSuccess {
+                _state.update { it.copy(isInterrogating = false) }
+            }
     }
 }

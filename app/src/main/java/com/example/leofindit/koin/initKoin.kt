@@ -1,4 +1,4 @@
-package com.example.leofindit.di
+package com.example.leofindit.koin
 
 import android.content.Context
 import org.koin.android.ext.koin.androidContext

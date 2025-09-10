@@ -7,7 +7,7 @@
 //import androidx.annotation.RequiresPermission
 //import androidx.lifecycle.AndroidViewModel
 //import androidx.lifecycle.viewModelScope
-//import com.example.leofindit.deviceScanner.data.DeviceScanner
+//import com.example.leofindit.deviceScanner.data.Scanner.DeviceScanner
 //import com.example.leofindit.deviceScanner.domain.BtleDevice
 //import com.example.leofindit.deviceScanner.data.database.AppDatabase
 //import kotlinx.coroutines.flow.MutableStateFlow

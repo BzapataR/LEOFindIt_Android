@@ -2,6 +2,7 @@ package com.example.leofindit.deviceScanner.data
 
 import android.util.Log
 import androidx.sqlite.SQLiteException
+import com.example.leofindit.deviceScanner.data.Scanner.DeviceScanner
 import com.example.leofindit.deviceScanner.data.database.BTLEDeviceDao
 import com.example.leofindit.deviceScanner.data.database.BTLEDeviceEntity
 import com.example.leofindit.deviceScanner.domain.BtleDevice
@@ -207,8 +208,12 @@ class DeviceRepository(
         return Result.Error(DbError.UNKNOWN)
     }
 
-    override fun interrogate(address: String) {
+    override fun interrogate(address: String) : EmptyResult<DataError> {
         scanner.interrogation(address)
+            .onError { error ->
+                return Result.Error(error)
+            }
+        return Result.Success(Unit)
     }
 
 

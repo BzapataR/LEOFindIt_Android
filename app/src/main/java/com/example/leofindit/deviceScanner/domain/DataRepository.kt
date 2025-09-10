@@ -23,7 +23,7 @@ interface DataRepository {
     fun getDeviceAsFlow(address : String) : Flow<BtleDevice?>
     suspend fun editNickName(address: String, newNickName : String): EmptyResult<DataError.DbError>
     suspend fun editDeviceSus(address : String, newSusValue : Boolean?) : EmptyResult<DataError>
-    fun interrogate(address: String)
+    fun interrogate(address: String): EmptyResult<DataError>
     //fun trackDevice()
 
 

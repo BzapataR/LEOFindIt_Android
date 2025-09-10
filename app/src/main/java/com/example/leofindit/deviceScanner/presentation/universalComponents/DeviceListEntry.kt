@@ -107,9 +107,9 @@ fun DeviceListEntry(onListItemClick : () -> Unit, device : BtleDevice, height : 
 @Preview
 @Composable
 fun DeviceDetailEntryPreview() {
-    val device1 = BtleDevice(deviceType = "", deviceUuid = emptyList(), deviceManufacturer = "", deviceAddress = "", deviceName = "Device 1", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -90)
-    val device2 = BtleDevice(deviceType = "", deviceUuid = emptyList(), deviceManufacturer = "", deviceAddress = "", deviceName = "Device 2", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -60)
-    val device3 = BtleDevice(deviceType = "", deviceUuid = emptyList(), deviceManufacturer = "", deviceAddress = "", deviceName = "Device 3", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = 0)
+    val device1 = BtleDevice(deviceType = "", deviceUuid = emptyList(), deviceManufacturer = "", deviceAddress = "", deviceName = "Device 1", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -90, manufacturerData = "")
+    val device2 = BtleDevice(deviceType = "", deviceUuid = emptyList(), deviceManufacturer = "", deviceAddress = "", deviceName = "Device 2", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = -60, manufacturerData = "")
+    val device3 = BtleDevice(deviceType = "", deviceUuid = emptyList(), deviceManufacturer = "", deviceAddress = "", deviceName = "Device 3", isSuspicious = false, isTag = false, isParent = false, isTarget = false, nickName = "", timeStamp = 0L, signalStrength = 0, manufacturerData = "")
     LeoFindItTheme {
         Column(
             Modifier.padding(12.dp)

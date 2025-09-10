@@ -5,6 +5,14 @@ sealed interface DataError : Error {
         DISK_FULL,
         UNKNOWN,
     }
+    enum class Remote: DataError {
+        REQUEST_TIMEOUT,
+        TOO_MANY_REQUESTS,
+        NO_INTERNET,
+        SERVER,
+        SERIALIZATION,
+        UNKNOWN_ERROR
+    }
 
     enum class ScanningError : DataError {
         MISSING_PERMISSIONS,

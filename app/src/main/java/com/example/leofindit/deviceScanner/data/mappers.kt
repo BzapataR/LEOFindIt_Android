@@ -6,7 +6,7 @@ import com.example.leofindit.deviceScanner.domain.BtleDevice
 
 fun BtleDevice.toEntity(): BTLEDeviceEntity {
     return BTLEDeviceEntity(
-        deviceAddress = this.deviceAddress.toString(),
+        deviceAddress = this.deviceAddress,
         deviceManufacturer = this.deviceManufacturer,
         deviceName = this.deviceName,
         deviceType = this.deviceType,
@@ -30,7 +30,8 @@ fun BTLEDeviceEntity.toBtleDevice(): BtleDevice {
         isTag = false,                 // isTag is set to false by default
         nickName = this.deviceNickname,
         timeStamp = this.timestamp.first(), // Use the first timestamp value, default to 0L if empty
-        deviceUuid = this.UUID
+        deviceUuid = this.UUID,
+        manufacturerData = "" //todo make this part of deviceEntity
     )
 }
 // Extension function to convert a list of BTLEDeviceEntity to a list of BtleDevice

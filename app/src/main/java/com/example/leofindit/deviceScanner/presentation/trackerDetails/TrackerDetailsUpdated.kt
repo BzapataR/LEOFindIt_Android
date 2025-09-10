@@ -6,23 +6,28 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -117,15 +122,21 @@ fun TrackerDetails(
                     .padding(start = 16.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
+                TextButton(
+                    onClick = {onAction(TrackerDetailActions.Copy(state.nickName.takeUnless { it == "null" } ?: state.deviceName))},
+                    contentPadding = PaddingValues(0.dp)
+                )
+                {
+                    Text(
                     text = state.nickName.takeUnless { it == "null" } ?: state.deviceName,
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold
                     ),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).padding(0.dp),
                     maxLines = 1,
                     color = MaterialTheme.colorScheme.primary
-                )
+                    )
+                }
             }
             // Connection status and last seen time
             Column(
@@ -216,10 +227,10 @@ fun TrackerDetails(
                         )
                         RoundedListItem(
                             leadingText = "Manufacturer",
-                            trailingText = "todo add ",
+                            trailingText = state.manufacturer,
                             trailingIcon = ImageVector.vectorResource(R.drawable.sharp_content_copy_24),
                             onClick = {
-                                onAction(TrackerDetailActions.Copy("todo value"))
+                                onAction(TrackerDetailActions.Copy(state.manufacturer))
                             }
                         )
                         RoundedListItem(
@@ -321,7 +332,18 @@ fun TrackerDetails(
                         modifier = Modifier.fillMaxWidth()
                     )
                     {
-                        Text(text = "Interrogate Device")
+                        Row (
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ){
+                            Text(text = "Interrogate Device")
+                            if (state.isInterrogating) {
+                                CircularProgressIndicator(
+                                    color = Color.Black,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }

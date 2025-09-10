@@ -1,26 +1,25 @@
-package com.example.leofindit.di
+package com.example.leofindit.koin
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.example.leofindit.deviceScanner.data.DeviceRepository
-import com.example.leofindit.deviceScanner.data.DeviceScanner
+import com.example.leofindit.deviceScanner.data.Scanner.DeviceScanner
 import com.example.leofindit.deviceScanner.data.database.AppDatabase
 import com.example.leofindit.deviceScanner.domain.DataRepository
 import com.example.leofindit.deviceScanner.presentation.SelectedDeviceViewModel
 import com.example.leofindit.deviceScanner.presentation.databaseDevices.DatabaseDeviceViewModel
 import com.example.leofindit.deviceScanner.presentation.homePage.HomePageViewModel
 import com.example.leofindit.deviceScanner.presentation.trackerDetails.TrackerDetailViewModel
-import com.example.leofindit.preferences.UserPreferences
+import com.example.leofindit.http.setup.HttpClientFactory
 import com.example.leofindit.preferences.UserPreferencesRepository
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
-import org.koin.compose.koinInject
 import org.koin.core.module.dsl.singleOf
-import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
+import io.ktor.client.engine.okhttp.OkHttp
 import org.koin.dsl.module
 
 val Context.appSettingsDataStore : DataStore<Preferences> by preferencesDataStore(
@@ -41,6 +40,8 @@ val modules = module {
         androidApplication().appSettingsDataStore // Use the application context to get the DataStore
     }
     single{ UserPreferencesRepository(get()) }
+
+    single { HttpClientFactory.create(engine = OkHttp.create()) }
     singleOf(::DeviceRepository).bind<DataRepository>()
     viewModelOf(::HomePageViewModel)
     viewModelOf(::SelectedDeviceViewModel)

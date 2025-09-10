@@ -16,7 +16,8 @@ data class BtleDevice(
     val timeStamp: Long,
     val deviceUuid: List<String>,
     val serviceUUIDs : List<UUID> = emptyList(),
-    val characteristicsUUIDs : List<UUID> = emptyList()
+    val characteristicsUUIDs : List<UUID> = emptyList(),
+    val manufacturerData : String
 
     )
 
